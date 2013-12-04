@@ -29,9 +29,9 @@ namespace Dynamo.DSEngine
         /// <summary>
         /// libraries is a static property so we retain the loaded library information even after resetting EngineController 
         /// </summary>
-        private static List<string> libraries = new List<string>();
+        private static List<string> importedLibraries = new List<string>();
 
-        internal EngineController(DynamoController controller)
+        internal EngineController(DynamoController controller, bool isReset)
         {
             GraphToDSCompiler.GraphUtilities.Reset();
 
@@ -41,14 +41,17 @@ namespace Dynamo.DSEngine
             libraryServices.LibraryLoaded += this.LibraryLoaded;
 
             liveRunnerServices = new LiveRunnerServices(this);
-            foreach (string loadedLib in libraryServices.BuiltinLibraries)
+            // If EngineController is reset, then load those imported libraries, otherwise
+            // those imported libraries will be loaded in LoadLibraries().
+            if (isReset)
             {
-                if (!libraries.Contains(loadedLib))
-                {
-                    libraries.Add(loadedLib);
-                }
+                liveRunnerServices.ReloadAllLibraries(libraryServices.BuiltinLibraries.Union(importedLibraries).ToList());
+                GraphToDSCompiler.GraphUtilities.PreloadAssembly(importedLibraries);
             }
-            liveRunnerServices.ReloadAllLibraries(libraries);
+            else
+            {
+                liveRunnerServices.ReloadAllLibraries(libraryServices.BuiltinLibraries);
+            }
 
             astBuilder = new AstBuilder(this);
 
@@ -60,14 +63,20 @@ namespace Dynamo.DSEngine
         /// <summary>
         /// Load builtin functions and libraries into Dynamo.
         /// </summary>
-        public void LoadBuiltinLibraries()
+        public void LoadLibraries()
         {
-            LoadFunctions(libraryServices[LibraryServices.BuiltInCategories.BUILT_INS]);
-            LoadFunctions(libraryServices[LibraryServices.BuiltInCategories.OPERATORS]);
+            LoadFunctions(libraryServices[LibraryServices.Categories.BuiltIns]);
+            LoadFunctions(libraryServices[LibraryServices.Categories.Operators]);
 
             foreach (var library in libraryServices.BuiltinLibraries)
             {
                 LoadFunctions(libraryServices[library]);
+            }
+
+            var libs = new List<string>(importedLibraries);
+            foreach (var lib in libs)
+            {
+                libraryServices.ImportLibrary(lib);
             }
         }
 
@@ -118,8 +127,9 @@ namespace Dynamo.DSEngine
             return mirror;
         }
 
-        public string ConvertNodesToCode(IEnumerable<NodeModel> nodes)
+        public string ConvertNodesToCode(IEnumerable<NodeModel> nodes, out Dictionary<string,string> variableNames)
         {
+            variableNames = new Dictionary<string, string>();
             if (!nodes.Any())
                 return string.Empty;
 
@@ -128,6 +138,7 @@ namespace Dynamo.DSEngine
                 return code;
 
             StringBuilder sb = new StringBuilder(code);
+            string newVar;
             foreach (var node in nodes)
             {
                 if (node is CodeBlockNodeModel)
@@ -135,12 +146,53 @@ namespace Dynamo.DSEngine
                     var tempVars = (node as CodeBlockNodeModel).TempVariables;
                     foreach (var tempVar in tempVars)
                     {
-                        sb = sb.Replace(tempVar, GenerateShortVariable()); 
+                        newVar = GenerateShortVariable();
+                        sb = sb.Replace(tempVar, newVar);
+                        variableNames.Add(tempVar, newVar);
                     }
                 }
+                else
+                {
+                    string thisVar = GraphToDSCompiler.GraphUtilities.ASTListToCode(new List<AssociativeNode> { node.AstIdentifierForPreview });
+                    newVar = GenerateShortVariable();
+                    sb = sb.Replace(thisVar, newVar);
+                    variableNames.Add(thisVar, newVar);
+                }
 
-                string thisVar = GraphToDSCompiler.GraphUtilities.ASTListToCode(new List<AssociativeNode> { node.AstIdentifierForPreview });
-                sb = sb.Replace(thisVar, GenerateShortVariable());
+                //get the names of inputs as well and replace them with simpler names
+                foreach (var inport in node.InPorts)
+                {
+                    if (inport.Connectors.Count == 0)
+                        continue;
+                    var inputNode = inport.Connectors[0].Start.Owner;
+                    if (nodes.Contains(inputNode))
+                        continue;
+                    if (!(inputNode is CodeBlockNodeModel))
+                    {
+                        string inputVar = GraphToDSCompiler.GraphUtilities.ASTListToCode(new List<AssociativeNode> { inputNode.AstIdentifierForPreview });
+                        if (!variableNames.ContainsKey(inputVar))
+                        {
+                            newVar = GenerateShortVariable();
+                            variableNames.Add(inputVar, newVar);
+                            sb = sb.Replace(inputVar, newVar);
+                        }
+                    }
+                    else
+                    {
+                        var cbn = inputNode as CodeBlockNodeModel;
+                        int portIndex = cbn.OutPorts.IndexOf(inport.Connectors[0].Start);
+                        string inputVar = cbn.GetAstIdentifierForOutputIndex(portIndex).Value;
+                        if (cbn.TempVariables.Contains(inputVar))
+                        {
+                            if (!variableNames.ContainsKey(inputVar))
+                            {
+                                newVar = GenerateShortVariable();
+                                variableNames.Add(inputVar, newVar);
+                                sb = sb.Replace(inputVar, newVar);
+                            }
+                        }
+                    }
+                }
             }
 
             return sb.ToString();
@@ -243,6 +295,33 @@ namespace Dynamo.DSEngine
 
             return true;
         }
+        
+        /// <summary>
+        /// Get the corresponding FunctionItem based on mangled function name
+        /// </summary>
+        /// <param name="mangledFunctionName"></param>
+        /// <returns></returns>
+        public FunctionItem GetImportedFunction(string mangledFunctionName)
+        {
+            string searchName = mangledFunctionName.Split(new char[] { '@' })[0];
+
+            List<FunctionItem> functionGroup;
+            if (!dynSettings.Controller.DSImportedFunctions.TryGetValue(searchName, out functionGroup))
+            {
+                return null;
+            }
+
+            foreach (var item in functionGroup)
+            {
+                if (item.MangledName.Equals(mangledFunctionName))
+                    return item;
+            }
+
+            if (functionGroup.Count > 0)
+                return functionGroup[0];
+            else
+                return null;
+        }
 
         private string GenerateShortVariable()
         {
@@ -287,10 +366,13 @@ namespace Dynamo.DSEngine
             {
                 searchViewModel.Add(function);
 
-                if (!controller.DSImportedFunctions.ContainsKey(function.DisplayName))
+                List<FunctionItem> functionGroup;
+                if (!controller.DSImportedFunctions.TryGetValue(function.SearchName, out functionGroup))
                 {
-                    controller.DSImportedFunctions.Add(function.DisplayName, function);
+                    functionGroup = new List<FunctionItem>();
+                    controller.DSImportedFunctions[function.SearchName] = functionGroup;
                 }
+                functionGroup.Add(function);
             }
         }
 
@@ -324,9 +406,9 @@ namespace Dynamo.DSEngine
             LoadFunctions(libraryServices[newLibrary]);
 
             // Reset the VM
-            libraries.AddRange(libraryServices.BuiltinLibraries);
-            libraries.AddRange(libraryServices.ImportedLibraries);
-            liveRunnerServices.ReloadAllLibraries(libraries);
+            importedLibraries.Clear();
+            importedLibraries.AddRange(libraryServices.ImportedLibraries);
+            liveRunnerServices.ReloadAllLibraries(libraryServices.BuiltinLibraries.Union(importedLibraries).ToList());
 
             // Mark all nodes as dirty so that AST for the whole graph will be
             // regenerated.

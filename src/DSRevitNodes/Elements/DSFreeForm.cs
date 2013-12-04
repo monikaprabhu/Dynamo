@@ -20,9 +20,20 @@ namespace DSRevitNodes
 
         #region Internal properties
 
+        /// <summary>
+        /// Reference to the Element
+        /// </summary>
         internal Autodesk.Revit.DB.FreeFormElement InternalFreeFormElement
         {
             get; private set;
+        }
+
+        /// <summary>
+        /// Reference to the Element
+        /// </summary>
+        internal override Element InternalElement
+        {
+            get { return InternalFreeFormElement; }
         }
 
         #endregion
@@ -130,6 +141,12 @@ namespace DSRevitNodes
             if (solid == null)
             {
                 throw new ArgumentNullException("solid");
+            }
+
+            if (!Document.IsFamilyDocument)
+            {
+                throw new Exception("You can only create a FreeForm element in the Family editor.  You can then import" +
+                                    "this family into a Project environment as a family.");
             }
             return new DSFreeForm(solid.InternalSolid);
         }

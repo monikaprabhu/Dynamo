@@ -21,6 +21,7 @@ namespace Dynamo.Nodes
     [NodeName("Code Block")]
     [NodeCategory(BuiltinNodeCategories.CORE_INPUT)]
     [NodeDescription("Allows for code to be written")] //<--Change the descp :|
+    [IsDesignScriptCompatible]
     public partial class CodeBlockNodeModel : NodeModel
     {
         private readonly List<Statement> codeStatements = new List<Statement>();
@@ -39,9 +40,11 @@ namespace Dynamo.Nodes
             ArgumentLacing = LacingStrategy.Disabled;
         }
 
-        public CodeBlockNodeModel(string userCode, Guid guid, WorkspaceModel workSpace)
+        public CodeBlockNodeModel(string userCode, Guid guid, WorkspaceModel workSpace, double XPos, double YPos)
         {
             ArgumentLacing = LacingStrategy.Disabled;
+            this.X = XPos;
+            this.Y = YPos;
             this.code = userCode;
             this.GUID = guid;
             this.WorkSpace = workSpace;
@@ -108,6 +111,16 @@ namespace Dynamo.Nodes
             foreach (Statement stmnt in codeStatements)
                 defVarNames.AddRange(Statement.GetDefinedVariableNames(stmnt, true));
             return defVarNames;
+        }
+
+        /// <summary>
+        /// Returns the index of the port corresponding to the variable name given
+        /// </summary>
+        /// <param name="variableName"> Name of the variable corresponding to an input port </param>
+        /// <returns> Index of the required port in the InPorts collection </returns>
+        public static int GetInportIndex(CodeBlockNodeModel cbn, string variableName)
+        {
+            return cbn.inputIdentifiers.IndexOf(variableName);
         }
 
         #endregion
@@ -223,7 +236,7 @@ namespace Dynamo.Nodes
                 // If an empty Code Block Node is found, it is deleted. Since the creation and deletion of 
                 // an empty Code Block Node should not be recorded, this method also checks and removes
                 // any unwanted recordings
-
+                value = FormatUserText(value);
                 if (value == "")
                 {
                     if (this.Code == "")
@@ -299,7 +312,7 @@ namespace Dynamo.Nodes
                     if (astNode is IdentifierNode)
                     {
                         string unboundVar = inputIdentifiers[i];
-                        string inputVar = GraphUtilities.ASTListToCode(new List<AssociativeNode> { astNode });
+                        string inputVar = (astNode as IdentifierNode).Value;
                         if (!string.Equals(unboundVar, inputVar))
                         {
                             initStatements.Append(unboundVar);
@@ -500,8 +513,7 @@ namespace Dynamo.Nodes
                 if (RequiresOutPort(s, i))
                 {
                     string nickName = Statement.GetDefinedVariableNames(s, true)[0];
-
-                    if (nickName.StartsWith("temp") && nickName.Length > 9) // Do a better check
+                    if (tempVariables.Contains(nickName)) 
                         nickName = "Statement Output"; //Set tool tip incase of random var name
 
                     OutPortData.Add(

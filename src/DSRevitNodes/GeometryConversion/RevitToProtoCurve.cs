@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -8,7 +9,7 @@ using Autodesk.DesignScript.Geometry;
 namespace DSRevitNodes.GeometryConversion
 {
     [Browsable(false)]
-    public static class RevitCurveToProtoCurve
+    public static class RevitToProtoCurve
     {
 
         /// <summary>
@@ -19,7 +20,7 @@ namespace DSRevitNodes.GeometryConversion
         public static Autodesk.DesignScript.Geometry.Curve ToProtoType(this Autodesk.Revit.DB.Curve crv)
         {
             dynamic dyCrv = crv;
-            return RevitCurveToProtoCurve.Convert(dyCrv);
+            return RevitToProtoCurve.Convert(dyCrv);
         }
 
 
@@ -68,8 +69,17 @@ namespace DSRevitNodes.GeometryConversion
         /// <returns></returns>
         private static Autodesk.DesignScript.Geometry.Arc Convert(Autodesk.Revit.DB.Arc crv)
         {
-            return Autodesk.DesignScript.Geometry.Arc.ByCenterPointRadiusAngle(crv.Center.ToPoint(), crv.Radius,
+            var x = crv.XDirection.ToVector();
+            var y = crv.YDirection.ToVector();
+            var c = crv.Center.ToPoint();
+
+            var a = Autodesk.DesignScript.Geometry.Arc.ByCenterPointRadiusAngle(c, crv.Radius,
                 crv.GetEndParameter(0), crv.GetEndParameter(1), crv.Normal.ToVector());
+
+            var at = a.Transform(a.ContextCoordinateSystem,
+                CoordinateSystem.ByOriginVectors(c, x, y) );
+
+            return (Autodesk.DesignScript.Geometry.Arc) at;
         }
 
         /// <summary>
@@ -98,6 +108,7 @@ namespace DSRevitNodes.GeometryConversion
                 unitArc.ContextCoordinateSystem.XAxis.Scale(crv.RadiusX),
                 unitArc.ContextCoordinateSystem.XAxis.Scale(crv.RadiusX));
             var trf = (Curve) unitArc.Transform(unitArc.ContextCoordinateSystem, nonUniScale);
+
             return trf;
         }
 
@@ -108,9 +119,9 @@ namespace DSRevitNodes.GeometryConversion
         /// <returns></returns>
         private static Autodesk.DesignScript.Geometry.BSplineCurve Convert(Autodesk.Revit.DB.CylindricalHelix crv)
         {
+            // for now, we omit the implementation until we have weights
             throw new NotImplementedException();
 
-            // creates a rational b-spline, but we can't set weights
             var b = crv.BasePoint;
             var r = crv.Radius;
             var p = crv.Pitch;
@@ -118,8 +129,6 @@ namespace DSRevitNodes.GeometryConversion
             var y = crv.YVector;
             var x = crv.XVector;
             var ir = crv.IsRightHanded;
-
-
 
         }
     }
