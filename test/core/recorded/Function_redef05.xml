@@ -1,0 +1,13 @@
+<Commands ExitAfterPlayback="true" PauseAfterPlaybackInMs="10" CommandIntervalInMs="20">
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <CreateNodeCommand NodeId="b4e2970c-935a-424e-9de9-60da5797738c" NodeName="Code Block" X="181" Y="248" DefaultPosition="false" TransformCoordinates="true" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <UpdateModelValueCommand ModelGuid="b4e2970c-935a-424e-9de9-60da5797738c" Name="Code" Value="def foo(i:int)&#xA;{&#xA;g=g+1;&#xA;return=1;&#xA;};" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <CreateNodeCommand NodeId="8c1ef2fe-8d48-47ef-9c63-ab11d5896ae7" NodeName="Code Block" X="351" Y="289" DefaultPosition="false" TransformCoordinates="true" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <UpdateModelValueCommand ModelGuid="8c1ef2fe-8d48-47ef-9c63-ab11d5896ae7" Name="Code" Value="g=0;&#xA;v=foo(1);" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <OpenFileCommand XmlFilePath="C:\DDSGit\Dynamo\test\core\recorded\test.dyn" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+</Commands>

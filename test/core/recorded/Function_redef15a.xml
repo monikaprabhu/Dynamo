@@ -1,0 +1,29 @@
+<Commands ExitAfterPlayback="true" PauseAfterPlaybackInMs="10" CommandIntervalInMs="20">
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <CreateNodeCommand NodeId="9a77a9f3-6509-4482-935d-0a98980cec50" NodeName="Code Block" X="164" Y="198" DefaultPosition="false" TransformCoordinates="true" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <UpdateModelValueCommand ModelGuid="9a77a9f3-6509-4482-935d-0a98980cec50" Name="Code" Value="a=0" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <CreateNodeCommand NodeId="8a2383b0-6ef2-4d9e-a5fe-9a015e6fd4b0" NodeName="Code Block" X="123" Y="315" DefaultPosition="false" TransformCoordinates="true" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <UpdateModelValueCommand ModelGuid="8a2383b0-6ef2-4d9e-a5fe-9a015e6fd4b0" Name="Code" Value="def foo(b:int[])&#xA;{&#xA;a=a+1;&#xA;return=b;&#xA;}" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <CreateNodeCommand NodeId="4b0ab845-5cf3-4a96-86c3-fe9c1e587589" NodeName="Code Block" X="289" Y="232" DefaultPosition="false" TransformCoordinates="true" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <UpdateModelValueCommand ModelGuid="4b0ab845-5cf3-4a96-86c3-fe9c1e587589" Name="Code" Value="f={0,1}" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <CreateNodeCommand NodeId="f9007e50-dc18-4c62-8526-4786b2a5e5d2" NodeName="Code Block" X="300" Y="310" DefaultPosition="false" TransformCoordinates="true" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <UpdateModelValueCommand ModelGuid="f9007e50-dc18-4c62-8526-4786b2a5e5d2" Name="Code" Value="z=foo(f)" />
+  <MakeConnectionCommand NodeId="4b0ab845-5cf3-4a96-86c3-fe9c1e587589" PortIndex="0" Type="1" ConnectionMode="0" />
+  <MakeConnectionCommand NodeId="f9007e50-dc18-4c62-8526-4786b2a5e5d2" PortIndex="0" Type="0" ConnectionMode="1" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <RunCancelCommand ShowErrors="false" CancelRun="false" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <UpdateModelValueCommand ModelGuid="4b0ab845-5cf3-4a96-86c3-fe9c1e587589" Name="Code" Value="f={0,1};&#xD;&#xA;f[1]=4" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <RunCancelCommand ShowErrors="false" CancelRun="false" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+</Commands>

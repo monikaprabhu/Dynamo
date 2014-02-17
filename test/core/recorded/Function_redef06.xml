@@ -1,0 +1,21 @@
+<Commands ExitAfterPlayback="true" PauseAfterPlaybackInMs="10" CommandIntervalInMs="20">
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <CreateNodeCommand NodeId="dae49088-aa28-45e7-bef5-0a5b090a0d85" NodeName="Code Block" X="279" Y="315" DefaultPosition="false" TransformCoordinates="true" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <UpdateModelValueCommand ModelGuid="dae49088-aa28-45e7-bef5-0a5b090a0d85" Name="Code" Value="def test(i:int) &#xA;{&#xA;a=a+1;&#xA;return = i;&#xA;};&#xA;c=test(5);" />
+  <CreateNodeCommand NodeId="028db9a1-2dd4-4511-9504-bc389769a2d5" NodeName="Code Block" X="389" Y="349" DefaultPosition="false" TransformCoordinates="true" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <UpdateModelValueCommand ModelGuid="028db9a1-2dd4-4511-9504-bc389769a2d5" Name="Code" Value="a=0" />
+  <CreateNodeCommand NodeId="90f8f82f-99aa-4ccb-b076-aca5cb5505fc" NodeName="Code Block" X="447" Y="423" DefaultPosition="false" TransformCoordinates="true" />
+  <SelectModelCommand ModelGuid="00000000-0000-0000-0000-000000000000" Modifiers="0" />
+  <UpdateModelValueCommand ModelGuid="90f8f82f-99aa-4ccb-b076-aca5cb5505fc" Name="Code" Value="d" />
+  <SelectModelCommand ModelGuid="90f8f82f-99aa-4ccb-b076-aca5cb5505fc" Modifiers="0" />
+  <DragSelectionCommand X="396" Y="411" DragOperation="0" />
+  <DragSelectionCommand X="480" Y="420" DragOperation="1" />
+  <SelectModelCommand ModelGuid="028db9a1-2dd4-4511-9504-bc389769a2d5" Modifiers="0" />
+  <DragSelectionCommand X="339" Y="334" DragOperation="0" />
+  <DragSelectionCommand X="431" Y="333" DragOperation="1" />
+  <MakeConnectionCommand NodeId="028db9a1-2dd4-4511-9504-bc389769a2d5" PortIndex="0" Type="1" ConnectionMode="0" />
+  <MakeConnectionCommand NodeId="90f8f82f-99aa-4ccb-b076-aca5cb5505fc" PortIndex="0" Type="0" ConnectionMode="1" />
+  <RunCancelCommand ShowErrors="false" CancelRun="false" />
+</Commands>
