@@ -45,6 +45,8 @@ namespace Dynamo.DSEngine
 
             this.controller = controller;
             this.controller.DynamoModel.NodeDeleted += NodeDeleted;
+
+            this.controller.CustomNodeManager.RecompileAllNodes(this);
         }
 
         public void Dispose()
@@ -212,10 +214,10 @@ namespace Dynamo.DSEngine
                             ElementState.Active == n.State ||
                             (ElementState.Error != n.State && n is DSFunction));
 
-            if (!activeNodes.Any())
-                return false;
-
-            astBuilder.CompileToAstNodes(activeNodes, true);
+            if (activeNodes.Any())
+            {
+                astBuilder.CompileToAstNodes(activeNodes, true);
+            }
             return VerifyGraphSyncData();
         }
 

@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework;
 using System.Collections.Generic;
 using Autodesk.DesignScript.Runtime;
+using System.Collections;
 namespace ProtoFFITests
 {
     public class TestData
@@ -93,6 +94,12 @@ namespace ProtoFFITests
                 yield return item * 2;
             }
         }
+
+        public static int AddWithDefaultArgument(int x, int y = 100)
+        {
+            return x + y;
+        }
+
         public object[] GetMixedObjects()
         {
             object[] objs = { new DerivedDummy(), new Derived1(), new TestDispose(), new DummyDispose() };
@@ -401,7 +408,42 @@ namespace ProtoFFITests
                 {"nums", new int[] {101, 202}}
             };
         }
-    }
+
+        public static int GetDepth([ArbitraryDimensionArrayImport] IList arr)
+        {
+            int maxSubListDepth = 0;
+            foreach (var item in arr)
+            {
+                var subList = item as System.Collections.IList;
+                if (subList != null)
+                {
+                    var subListDepth = GetDepth(subList);
+                    maxSubListDepth = Math.Max(subListDepth, maxSubListDepth);
+                }
+            }
+
+            return maxSubListDepth + 1;
+        }
+
+        public static int SumList([ArbitraryDimensionArrayImport] IList arr)
+        {
+            int sum = 0;
+            foreach (var item in arr)
+            {
+                if (item is System.Collections.IList)
+                {
+                    sum += SumList(item as System.Collections.IList);
+                }
+                else if (item is Int32)
+                {
+                    sum += (Int32)item;
+                }
+            }
+
+            return sum;
+        }
+   }
+
     internal class InternalClass
     {
         private int x = 5;
@@ -421,7 +463,7 @@ namespace ProtoFFITests
         {
             return f;
         }
-        public int foo(double x)
+        public int foo(int x)
         {
             return 1;
         }
@@ -430,6 +472,7 @@ namespace ProtoFFITests
             return 0;
         }
     }
+
     class CSFFIDataMarshalingTest : FFITestSetup
     {
 
@@ -774,6 +817,36 @@ namespace ProtoFFITests
             string code =
                 @" t = TestData.TestData();                   d = t.GetDictionary();                     r1 = d[""weight""];";
             ValidationData[] data = { new ValidationData { ValueName = "r1", ExpectedValue = 42, BlockIndex = 0 } };
+            Type dummy = Type.GetType("ProtoFFITests.TestData");
+            code = string.Format("import(\"{0}\");\r\n{1}", dummy.AssemblyQualifiedName, code);
+            ExecuteAndVerify(code, data);
+        }
+
+        [Test]
+        public void Test_DefaultArgument()
+        {
+            string code =
+                @" d = TestData.AddWithDefaultArgument(42);  
+";
+            ValidationData[] data = { new ValidationData { ValueName = "d", ExpectedValue = 142} };
+            Type dummy = Type.GetType("ProtoFFITests.TestData");
+            code = string.Format("import(\"{0}\");\r\n{1}", dummy.AssemblyQualifiedName, code);
+            ExecuteAndVerify(code, data);
+        }
+
+        [Test]
+        public void Test_ArbitaryDimensionParameter()
+        {
+            string code =
+@" 
+d1 = TestData.GetDepth({1, 2, {3, 4}, {5, {6, {7}}}});  
+d2 = TestData.SumList({1, 2, {3, 4}, {5, {6, {7}}}});  
+";
+            ValidationData[] data = 
+            { 
+                new ValidationData { ValueName = "d1", ExpectedValue = 4} ,
+                new ValidationData { ValueName = "d2", ExpectedValue = 28} , 
+            };
             Type dummy = Type.GetType("ProtoFFITests.TestData");
             code = string.Format("import(\"{0}\");\r\n{1}", dummy.AssemblyQualifiedName, code);
             ExecuteAndVerify(code, data);

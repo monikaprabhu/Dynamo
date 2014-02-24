@@ -1,26 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.UI;
+using Dynamo.Applications;
 using Dynamo.Controls;
-using Dynamo.FSchemeInterop;
 using Dynamo.Models;
 using Dynamo.Nodes;
 using Dynamo.PackageManager;
 using Dynamo.Revit;
 using Dynamo.Selection;
 using Dynamo.Units;
-using Dynamo.UpdateManager;
 using Dynamo.Utilities;
-using Dynamo.ViewModels;
+using DynamoUnits;
 using Greg;
 using RevitServices.Elements;
 using RevitServices.Persistence;
@@ -30,7 +29,6 @@ using CurveLoop = Autodesk.Revit.DB.CurveLoop;
 using Transaction = Dynamo.Nodes.Transaction;
 using Value = Dynamo.FScheme.Value;
 using RevThread = RevitServices.Threading;
-using Dynamo.DSEngine;
 
 namespace Dynamo
 {
@@ -67,8 +65,8 @@ namespace Dynamo
             }
         }
 
-        public DynamoController_Revit(FSchemeInterop.ExecutionEnvironment env, RevitServicesUpdater updater, Type viewModelType, string context)
-            : base(env, viewModelType, context, new UpdateManager.UpdateManager())
+        public DynamoController_Revit(FSchemeInterop.ExecutionEnvironment env, RevitServicesUpdater updater, Type viewModelType, string context, IUnitsManager units)
+            : base(env, viewModelType, context, new UpdateManager.UpdateManager(), units, new RevitWatchHandler(), Dynamo.PreferenceSettings.Load())
         {
             Updater = updater;
 
@@ -83,7 +81,6 @@ namespace Dynamo
             dynSettings.Controller.DynamoViewModel.RequestAuthentication += RegisterSingleSignOn;
 
             AddPythonBindings();
-            AddWatchNodeHandler();
 
             DocumentManager.GetInstance().CurrentUIApplication.Application.DocumentClosed += Application_DocumentClosed;
             DocumentManager.GetInstance().CurrentUIApplication.Application.DocumentOpened += Application_DocumentOpened;
@@ -100,10 +97,6 @@ namespace Dynamo
 
             MigrationManager.Instance.MigrationTargets.Add(typeof(WorkspaceMigrationsRevit));
             ElementNameStore = new Dictionary<ElementId, string>();
-
-            UnitsManager.Instance.HostApplicationInternalAreaUnit = DynamoAreaUnit.SquareFoot;
-            UnitsManager.Instance.HostApplicationInternalLengthUnit = DynamoLengthUnit.DecimalFoot;
-            UnitsManager.Instance.HostApplicationInternalVolumeUnit = DynamoVolumeUnit.CubicFoot;
 
             EngineController.ImportLibrary("DSRevitNodes.dll");
         }
@@ -539,37 +532,6 @@ namespace Dynamo
             return InIdleThread
                 ? _oldPyEval(dirty, script, bindings)
                 : RevThread.IdlePromise<Value>.ExecuteOnIdle(() => _oldPyEval(dirty, script, bindings));
-        }
-
-        #endregion
-
-        #region Watch Node Revit Hooks
-
-        private void AddWatchNodeHandler()
-        {
-            Watch.AddWatchHandler(new RevitElementWatchHandler());
-        }
-
-        private class RevitElementWatchHandler : WatchHandler
-        {
-            #region WatchHandler Members
-
-            public bool AcceptsValue(object o)
-            {
-                return o is Element;
-            }
-
-            public void ProcessNode(object value, WatchNode node)
-            {
-                var element = value as Element;
-                var id = element.Id;
-
-                node.Clicked += () => DocumentManager.GetInstance().CurrentUIDocument.ShowElements(element);
-
-                node.Link = id.IntegerValue.ToString(CultureInfo.InvariantCulture);
-            }
-
-            #endregion
         }
 
         #endregion

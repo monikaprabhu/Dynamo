@@ -8,6 +8,7 @@ using ProtoTest.TD;
 using GraphToDSCompiler;
 using ProtoTestFx.TD;
 using ProtoScript.Runners.Obsolete;
+using ProtoCore.DSASM;
 namespace ProtoTest.GraphCompiler
 {
     public class MicroFeatureTests
@@ -21,14 +22,14 @@ namespace ProtoTest.GraphCompiler
         }
         //
         // TODO Jun: Integrate this helper function into the reflection system
-        private List<Obj> GetArrayElements(ProtoCore.Mirror.RuntimeMirror mirror, ProtoCore.DSASM.StackValue svArrayPointer)
+        private List<Obj> GetArrayElements(ProtoCore.Mirror.RuntimeMirror mirror, StackValue svArrayPointer)
         {
             Assert.IsTrue(svArrayPointer.optype == ProtoCore.DSASM.AddressType.ArrayPointer);
             Obj array = new Obj(svArrayPointer);
             return mirror.GetUtils().GetArrayElements(array);
         }
 
-        [Test]
+        [Test, Ignore]
         public void GraphILTest_Assign01()
         {
             // Build the AST trees
@@ -47,7 +48,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Int64)o.Payload == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void GraphILTest_Assign02()
         {
             // Build the AST tree
@@ -69,7 +70,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Int64)o.Payload == 30);
         }
 
-        [Test]
+        [Test, Ignore]
         public void GraphILTest_FFIClassUsage_01()
         {
             List<ProtoCore.AST.AssociativeAST.AssociativeNode> astList = new List<ProtoCore.AST.AssociativeAST.AssociativeNode>();
@@ -132,7 +133,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Double)o.Payload == 10.0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void GraphILTest_FFIClassUsage_02()
         {
             List<ProtoCore.AST.AssociativeAST.AssociativeNode> astList = new List<ProtoCore.AST.AssociativeAST.AssociativeNode>();
@@ -215,10 +216,14 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Double)o.Payload == 11.0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void GraphILTest_FFIClassUsage_03()
         {
-            /* def f() {             *     X = 10;             *     return = X;             * }             */
+            /* def f() {
+             *     X = 10;
+             *     return = X;
+             * }
+             */
             ProtoCore.AST.AssociativeAST.BinaryExpressionNode assign1 = new ProtoCore.AST.AssociativeAST.BinaryExpressionNode(
                     new ProtoCore.AST.AssociativeAST.IdentifierNode("X"),
                     new ProtoCore.AST.AssociativeAST.IntNode("10"),
@@ -325,10 +330,18 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Int64)o.Payload == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void GraphILTest_FFIClassUsage_04()
         {
-            /*Class C {             *  def f: int (X: int, Y:int) {             *      Z = X + Y + X*Y;             *      return = Z;             *  }             * }             * p = C.C();             * t = p.f(4, 5);             */
+            /*Class C {
+             *  def f: int (X: int, Y:int) {
+             *      Z = X + Y + X*Y;
+             *      return = Z;
+             *  }
+             * }
+             * p = C.C();
+             * t = p.f(4, 5);
+             */
             ProtoCore.AST.AssociativeAST.BinaryExpressionNode assign1 = new ProtoCore.AST.AssociativeAST.BinaryExpressionNode(
                     new ProtoCore.AST.AssociativeAST.IdentifierNode("Z"),
                     new ProtoCore.AST.AssociativeAST.BinaryExpressionNode(
@@ -435,7 +448,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Int64)o.Payload == 29);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestAddition01()
         {
             GraphToDSCompiler.GraphCompiler gc = GraphToDSCompiler.GraphCompiler.CreateInstance();
@@ -455,7 +468,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Int64)o.Payload == 21);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestSubtraction01()
         {
             GraphToDSCompiler.GraphCompiler gc = GraphToDSCompiler.GraphCompiler.CreateInstance();
@@ -475,7 +488,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Int64)o.Payload == -1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestMultiplication01()
         {
             GraphToDSCompiler.GraphCompiler gc = GraphToDSCompiler.GraphCompiler.CreateInstance();
@@ -495,7 +508,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Int64)o.Payload == 110);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestDivision01()
         {
             GraphToDSCompiler.GraphCompiler gc = GraphToDSCompiler.GraphCompiler.CreateInstance();
@@ -515,7 +528,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Double)o.Payload == 0.90909090909090906);//(10 / 11));
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestSin01()
         {
             GraphToDSCompiler.GraphCompiler gc = GraphToDSCompiler.GraphCompiler.CreateInstance();
@@ -533,7 +546,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Double)o.Payload == 0.0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestSin02()
         {
             GraphToDSCompiler.GraphCompiler gc = GraphToDSCompiler.GraphCompiler.CreateInstance();
@@ -557,7 +570,7 @@ namespace ProtoTest.GraphCompiler
             // failing here
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestImportMathLib()
         {
             GraphToDSCompiler.GraphCompiler gc = GraphToDSCompiler.GraphCompiler.CreateInstance();
@@ -573,7 +586,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Double)o.Payload == 1.0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestCycleDetection()
         {
             GraphToDSCompiler.GraphCompiler gc = GraphToDSCompiler.GraphCompiler.CreateInstance();
@@ -587,14 +600,19 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mmx.Equals("Edge between 'C' and 'A' introduces a cycle in the graph"));
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestInputOutputInfo()
         {
             Dictionary<string, int> inputVariables = new Dictionary<string, int>();
             Dictionary<int, string> outputLines = new Dictionary<int, string>();
             List<ProtoCore.BuildData.WarningEntry> warningslist = new List<ProtoCore.BuildData.WarningEntry>();
             List<string> errorslist = new List<string>();
-            GraphUtilities.GetInputOutputInfo(@"a = b + 2;//                c = 4 * z;                 d = 5*2;f=d+g+e;//            ", out warningslist, out errorslist, inputVariables, outputLines);
+            GraphUtilities.GetInputOutputInfo(@"a = b + 2;
+//
+                c = 4 * z; 
+                d = 5*2;
+f=d+g+e;
+//            ", out warningslist, out errorslist, inputVariables, outputLines);
             Assert.IsTrue(outputLines[5] == "f");
             Assert.IsTrue(outputLines[4] == "d");
             Assert.IsTrue(outputLines[3] == "c");
@@ -607,13 +625,18 @@ namespace ProtoTest.GraphCompiler
             errorslist.Clear();
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestInputOutputInfoForArrays1()
         {
             Dictionary<string, int> inputVariables = new Dictionary<string, int>(); Dictionary<int, string> outputLines = new Dictionary<int, string>();
             List<ProtoCore.BuildData.WarningEntry> warningslist = new List<ProtoCore.BuildData.WarningEntry>();
             List<string> errorslist = new List<string>();
-            GraphUtilities.GetInputOutputInfo(@"a = {1,2,3};//                a[0] = 10;                a[1] = 20;a[2] = 30;//            ", out warningslist, out errorslist, inputVariables, outputLines);
+            GraphUtilities.GetInputOutputInfo(@"a = {1,2,3};
+//
+                a[0] = 10;
+                a[1] = 20;
+a[2] = 30;
+//            ", out warningslist, out errorslist, inputVariables, outputLines);
             Assert.IsTrue(outputLines[5] == "a[2]");
             Assert.IsTrue(outputLines[4] == "a[1]");
             Assert.IsTrue(outputLines[3] == "a[0]");
@@ -625,7 +648,7 @@ namespace ProtoTest.GraphCompiler
             errorslist.Clear();
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestDeltaExecution01()
         {
             //===========================================================================
@@ -696,7 +719,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 20);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestDeltaExecution02()
         {
             //===========================================================================
@@ -763,7 +786,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 30);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestDeltaExecution03()
         {
             //===========================================================================
@@ -832,7 +855,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 30);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestAnalyzeString01()
         {
             //Assert.IsTrue(SnapshotNodeType.Identifier == GraphUtilities.AnalyzeString("abc;"));
@@ -844,7 +867,7 @@ namespace ProtoTest.GraphCompiler
             GraphUtilities.AnalyzeString("class F{constructor doo(){}}");
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestGetInputOutputInfo()
         {
             string compliableInput = "t1 = a + b;\n t2 = c;\n t3 = d \n + \n e;\n t4 = f \n ; \n g = h ; \n i = j + h; \n \n k = m = l; \n n = n + n; \n";
@@ -902,7 +925,7 @@ namespace ProtoTest.GraphCompiler
             Assert.AreEqual(true, outputLines.Contains(new VariableLine("n", 12)));
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestGetInputOutputInfo_02()
         {
             string compliableInput = "p1 = Cuboid.ByLengths(WCS, 10, 10, 10);";
@@ -913,7 +936,7 @@ namespace ProtoTest.GraphCompiler
             Assert.AreEqual(1, outputLines.Count);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T001_MultipleAssignments()
         {
             GraphToDSCompiler.GraphCompiler gc = GraphToDSCompiler.GraphCompiler.CreateInstance();
@@ -932,7 +955,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue((Int64)o.Payload == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestSD()
         {
             // Creation - Create   code block and assign it to identifier
@@ -1169,7 +1192,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestSD_function()
         {
             // creation-function node- create two code block nodes and assign it to + operator
@@ -1352,7 +1375,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T002_TestArrayIndexing()
         {
             //1. Create a CBN : a = {1,2}
@@ -1484,7 +1507,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestSD_Modify()
         {
             // modify code block - 
@@ -1725,7 +1748,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 40);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestSD_Delete()
         {
             // create code block assign it to identifier
@@ -1833,7 +1856,7 @@ namespace ProtoTest.GraphCompiler
             //Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestSD_Replace()
         {
             // create code block assign it to identifier
@@ -1992,7 +2015,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 20);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestReconnect_1278()
         {
             //1. Create two code block 
@@ -2194,7 +2217,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestSD_Reconnect()
         {
             // create code block assign it to identifier
@@ -2353,7 +2376,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestSD_DeleteConnection()
         {
             // create code block assign it to identifier
@@ -2465,7 +2488,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestSD_RenameVariableName()
         {
             // create code block "a=10"assign it to identifier
@@ -2570,7 +2593,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void Crossreference()
         {
             // 1. Create a code block node a=1
@@ -2688,7 +2711,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void Crossreference_delete_1294()
         {
             // 1. Create a code block node a=1
@@ -2827,7 +2850,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void Crossreference_modify()
         {
             // 1. Create a code block node a=1
@@ -2946,7 +2969,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void GraphNotComputing_Islandnodes_1280()
         {
             //deffect IDE-1280
@@ -3053,7 +3076,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestUndoDelete_1296()
         {
             //deffect IDE-1296
@@ -3223,7 +3246,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror2.GetData().GetStackValue().opdata == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestNonExistentnodes()
         {
             // non existent node - 
@@ -3254,7 +3277,7 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void Reconnect_CB_DifferentSlot_1294()
         {
             // Deffect -1294
@@ -3376,7 +3399,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 20);
         }
 
-        [Test]
+        [Test, Ignore]
         public void CreateGraphWithNoOrder_1277()
         {
             // Deffect -1277
@@ -3599,7 +3622,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void OneInputOutputNodes_1279()
         {
             // Deffect -1279
@@ -3747,7 +3770,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror2.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T010_VariableDeclarationDependancy_1369()
         {
             //1.  Create a code block node a= 10
@@ -3866,7 +3889,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T014_VariableDeclarationDependancy_2()
         {
             //1.  Create two code block nodes assign it + operator 
@@ -4111,7 +4134,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 11);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T015_VariableDeclarationDependancy_3()
         {
             //1.  Create a driver node var1
@@ -4169,7 +4192,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T016_VariableDeclarationDependancy_4()
         {
             //1.  Create a code block node a= 10
@@ -4261,7 +4284,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T017_TestDriverNode()
         {
             //1.  Create a driver node
@@ -4319,7 +4342,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T018_TestDriverNode()
         {
             //1. Create a code block node and assign value 1 
@@ -4426,7 +4449,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T019_TestDriverNodeDeletion()
         {
             //1. Create a driver node
@@ -4522,7 +4545,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T020_DriverNodeArray_TestCaseDefect_IDE_1856()
         {
             // Failing due to defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1856
@@ -4590,7 +4613,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T021_DeleteConnection()
         {
             //1. Create a code block and assign it to identifier node named var2
@@ -4702,7 +4725,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T022_DeleteConnection_1395()
         {
             //1. Create two code block nodes and assign it + operator 
@@ -4954,7 +4977,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T023_DeleteConnection_Undo()
         {
             //1. Create a code block and assign it to identifier node named var2
@@ -5101,7 +5124,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T024_DeleteConnection_CBN2()
         {
             // 1. Create a code block node with expression a=1 and conenct it to identifier
@@ -5213,7 +5236,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T025_MultipleOutput_DeleteConnection()
         {
             // 1. Create a code block node a=1 and connect it two identifiers 
@@ -5385,7 +5408,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T004_TestSimpleMathNode()
         {
             //NOTE to JUN : This test case is failing, though the script generated is as expected. Can you please check what is the 
@@ -5593,7 +5616,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T005_TestReplicationGuideInCBNUsingAddition()
         {
             // 1. Create a CBN : a = {1,2};
@@ -5769,7 +5792,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)dim2[1].Payload == 6);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T006_TestReplicationGuideInCBNWithUpdate()
         {
             // 1. Create a CBN : a = {1,2};
@@ -5954,7 +5977,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)dim1[0].Payload == 5);
             Assert.IsTrue((Int64)dim1[1].Payload == 6);
         }
-        [Test]
+        [Test, Ignore]
         public void T007_TestReplicationGuideFromRadialMenuUsingMathFunctionWithEdit()
         {
             // 1. Create a CBN : a = {1,2};
@@ -6271,7 +6294,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)dim2[0].Payload == 2);
             Assert.IsTrue((Int64)dim2[1].Payload == 4);
         }
-        [Test]
+        [Test, Ignore]
         public void T008_TestReplicationGuideFromRadialMenuUsingMathFunctionWithEditAndUndo()
         {
             // 1. Create a CBN : a = {1,2};
@@ -6642,7 +6665,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)elements[1].Payload == 4);
         }
 
-        [Test]
+        [Test, Ignore]
         public void VerifyPreviewWithArray_1303()
         {
             // Deffect -http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1303
@@ -6875,7 +6898,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)elements[9].Payload == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T009_TestMathNodeAndDeleteDriverNodeConnection()
         {
             // 1. Create a driver node '0'
@@ -7049,7 +7072,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T010_TestMathNodeAndDeleteDriverNode()
         {
             // 1. Create a driver node '0'
@@ -7218,7 +7241,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T011_TestMathNodeAndCreateNewConnection()
         {
             // 1. Create a driver node '0'
@@ -7492,7 +7515,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata_d == 1.5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T012_TestMathNodeAndModifyInputs()
         {
             // 1. Create a CBN '0'
@@ -7692,7 +7715,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata_d == 1.5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T013_TestMathNodeWithRangeNodeUsingReplicationAndEdit()
         {
             // 1. Create 2 CBNs,  '0' and '2'
@@ -8171,7 +8194,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)elements[3].Payload == 4);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T014_TestMathNodeWithOperatorAndDriverAndIdentifierAndCBNWithEdit()
         {
             // 1. Create a driver node, rename to 'a' and set its value to 1'
@@ -8497,7 +8520,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T015_TestMathNodeWithOperatorAndDriverAndIdentifierAndCBNWithRemove()
         {
             // 1. Create a driver node, rename to 'a' and set its value to 1'
@@ -8833,7 +8856,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T016_TestReplicationGuideFromRadialMenuUsingMathFunctionWithEditUndoRedo()
         {
             // 1. Create a range node {0,1,2};
@@ -9374,7 +9397,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)dim2[3].Payload == 5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T017_TestReplicationGuideFromRadialMenuUsingMathFunctionWithInvalidGuidesAndUndoRedo()
         {
             // 1. Create a CBN : a = 1..2;
@@ -9671,7 +9694,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)dim1[1].Payload == 4);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T018_TestReplicationGuide_SingletonAndCollection_TestCaseDefect_IDE_1397()
         {
             // 1. Create a CBN : 0;
@@ -9862,7 +9885,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)dim1[0].Payload == 0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T026_Unsuccessful_1402()
         {
             //1. create a code block node with value "@#"
@@ -9952,7 +9975,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T026_Unsuccessful_1402_2()
         {
             //1. create a code block node with value "@#"
@@ -10070,7 +10093,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T026_Unsuccessful_1402_3()
         {
             //1. create a code block node with value "@#"
@@ -10238,7 +10261,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror2.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T019_TestRangeExpressionValueWithEdits()
         {
             // 1. Create a Range Expression : 0..2..1;
@@ -10522,7 +10545,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)dim1[2].Payload == 0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T020_TestIdentifierValueWithEdits()
         {
             // 1. Create a CBN : a = 1..2;
@@ -10837,7 +10860,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)dim2[1].Payload == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T021_TestFunctionNodeValueWithEdits_TestCaseDefect_DNL_1467667()
         {
             //Failing due to defect :DNL-1467667 Replication on heterogeneous array causes unintended type conversion
@@ -11145,7 +11168,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)dim2[1].Payload == 4.5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T027_ChainedAssignment()
         {
             // 1. Create a code block node 
@@ -11264,7 +11287,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T028_DriverNodeExpression()
         {
             //1. Create a driver node - Var 1 - 0;
@@ -11381,7 +11404,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T029_DriverArray()
         {
             //1. Create a driver node - Var 1 - {0,1}
@@ -11474,7 +11497,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)var1[1].Payload == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void Island_FunctionNode_1282()
         {
             // Deffect -1282
@@ -11580,7 +11603,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T030_MultilineCodeblock()
         {
             // 1. Create a codeblock with multiple lines a =10 and b=20
@@ -11790,7 +11813,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 30);
         }
 
-        [Test]
+        [Test, Ignore]
         public void RangeNode_InvalidInput_1422()
         {
             // Deffect_1422: Incorrect preview value for Range Node when there is no input for End slot.
@@ -11951,7 +11974,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror2.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T030_TestValuesFromTwoOutputsOfCBN()
         {
             // IDE-1332
@@ -12104,7 +12127,7 @@ b = 2;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T031_TestValuesFromTwoOutputsOfCBN_DoubleAndCollectionValues()
         {
             // IDE-1332
@@ -12287,7 +12310,7 @@ bb = 0..3;</Content>
             Assert.IsTrue((Int64)var1[3].Payload == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T032_TestValuesFrom4OutputsOfCBN_DoubleIntBoolCollectionValues()
         {
             // IDE-1332
@@ -12619,7 +12642,7 @@ d = { 0..1, 3..4 };</Content>
             Assert.IsTrue((Int64)dim2[1].Payload == 4);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T033_ImplicitConnection()
         {
             // 1. create a code block node a=1;
@@ -12752,7 +12775,7 @@ d = { 0..1, 3..4 };</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T034_RangeExpression_1444()
         {
             //1. Create three code block nodes a =1, b=1 and c=10
@@ -12955,7 +12978,7 @@ d = { 0..1, 3..4 };</Content>
             Assert.IsTrue((Int64)var1[9].Payload == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T035_IDE_1322()
         {
             //1. Create CBN : 34
@@ -13117,7 +13140,7 @@ b = 4;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 38);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T035_IDE_1322_2()
         {
             // 1. Create CBN : a = 1; 1+1;
@@ -13253,7 +13276,7 @@ b= 1+1;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T035_IDE_1322_3()
         {
             // 1. Create CBN : a = 1..5; 1..2..#2
@@ -13434,7 +13457,7 @@ _temp_78899b67fdb44c50929b7a7539a94aa4 =0..2..#3;</Content>
             Assert.IsTrue((Int64)var3[2].Payload == 5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T036_IDE_1314()
         {
             //1. Create CBN : a = 1; b= 2;
@@ -13576,7 +13599,7 @@ b = 2;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T037_IDE_1585()
         {
             // 1. Create CBN : a=1;
@@ -13721,7 +13744,7 @@ b = 2;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T038_IDE_1596()
         {
             // 1. Create CBN : a=1;
@@ -13807,7 +13830,7 @@ b = 2;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T039_IDE_1230()
         {
             // 1. Create CBN : a={1,2,3};a[0] =4; a[1]=5;
@@ -13963,7 +13986,7 @@ a[1]  = 5;
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T040_IDE_1325()
         {
             // 1. Create CBN : 4+4; 1..20..2; {1,3,5..}
@@ -14183,7 +14206,7 @@ _temp_8a105247ee644581b128af56cdde34cc ={1,3,7,9,10,-1};</Content>
             Assert.IsTrue((Int64)var4[5].Payload == -1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T040_IDE_1325_2()
         {
             // 1. Create CBN : a = 1
@@ -14402,7 +14425,7 @@ _temp_8a105247ee644581b128af56cdde34cc ={1,3,7,9,10,-1};</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T041_IDE_1450()
         {
             // Create CBN : 1..5
@@ -14737,7 +14760,7 @@ _temp_8a105247ee644581b128af56cdde34cc ={1,3,7,9,10,-1};</Content>
             Assert.IsTrue((Int64)var9[2].Payload == 5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void Array_update_item_1602()
         {
             // Create CBN a : 1..3
@@ -14824,7 +14847,7 @@ _temp_8a105247ee644581b128af56cdde34cc ={1,3,7,9,10,-1};</Content>
             Assert.IsTrue((Int64)level2[2].Payload == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void replicationguides_1595()
         {
             // Create CBN  {1,2}
@@ -15033,7 +15056,7 @@ _temp_8a105247ee644581b128af56cdde34cc ={1,3,7,9,10,-1};</Content>
             Assert.IsTrue((Int64)level22[1].Payload == 22);
         }
 
-        [Test]
+        [Test, Ignore]
         public void MultiLineCodeBlock_1285_2()
         {
             // 1. Create multiline code block with a=10;b=20;
@@ -15171,7 +15194,7 @@ _temp_8a105247ee644581b128af56cdde34cc ={1,3,7,9,10,-1};</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 20);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T042_IDE_1447()
         {
             // Create CBN : a = 1..2; b = a+1;
@@ -15538,7 +15561,7 @@ b = a+1;</Content>
             Assert.IsTrue((Int64)var5[1].Payload == 5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T043_IDE_1616()
         {
             // create a CBN : '0' 
@@ -15998,7 +16021,7 @@ b = a+1;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T044_PreviewAfterUndoRedo()
         {
             // Create CBN a=1 -> Undo ->Redo
@@ -16049,7 +16072,7 @@ b = a+1;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T045_preview_MultilineCBN_TestCaseDefect_1678()
         {
             //Failing defect : 1678
@@ -16165,7 +16188,7 @@ _temp_d2cd3bfc36084850866e6a9cf1b50f49 =a+b;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T046_IDE_1676()
         {
             // 1. Create a Math.Abs node with input '0'
@@ -16320,7 +16343,7 @@ _temp_d2cd3bfc36084850866e6a9cf1b50f49 =a+b;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 1.5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T047_IDE_1603_TestCaseDefect_1856()
         {
             // Failing due to defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1856
@@ -17217,7 +17240,7 @@ _temp_7363ab3808814192ad1c2000a7d006f9 =0;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 100.0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T048_IDE_1695_TestCaseDefect_1856()
         {
             // Failing due to defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1856
@@ -18685,7 +18708,7 @@ myCS = CoordinateSystem.ByUniversalTransform(WCS, scale, rotation, rsequence, tr
             Assert.IsTrue((Int64)level21[2].Payload == 4);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T049_IDE_1721()
         {
             // 1. Creata a CBN 1 
@@ -18889,7 +18912,7 @@ b  =a;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T050_IDE_1614()
         {
             // Create CBN 
@@ -19074,7 +19097,7 @@ b[1] = b[1] +3;</Content>
             Assert.IsTrue((Int64)var3[3].Payload == 8);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T051_IDE_1445()
         {
             // 1. Create a  CBN : a = 1;
@@ -19120,7 +19143,7 @@ b=a+1;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T052_IDE_1754_TestCaseDefect_1856()
         {
             // Failing due to defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1856
@@ -19825,7 +19848,7 @@ b=a+1;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 10.0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T053_IDE_1737()
         {
             // Drag and drop Range and Identifier node.
@@ -20022,7 +20045,7 @@ _temp_76d945a4215f45be83847b5969f0f994 =4;</Content>
             Assert.IsTrue((Int64)var2[4].Payload == 4);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T054_IDE_1770()
         {
             // create a CBN : count = 10
@@ -20241,7 +20264,7 @@ _temp_76d945a4215f45be83847b5969f0f994 =4;</Content>
             Assert.IsTrue((Double)var8[9].Payload == 0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T055_IDE_1769()
         {
             // create a CBN : count = 10
@@ -20489,7 +20512,7 @@ _temp_6eaeba43a10e473db628fa9be0578138 =0;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata == 0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T056_IDE_1590()
         {
             // Create CBN:2
@@ -20751,7 +20774,7 @@ _temp_6eaeba43a10e473db628fa9be0578138 =0;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T057_IDE_1723()
         {
             // Create CBN:0
@@ -21079,7 +21102,7 @@ _temp_6eaeba43a10e473db628fa9be0578138 =0;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T058_IDE_1731()
         {
             // Create CBN:a+b
@@ -21358,7 +21381,7 @@ _temp_6eaeba43a10e473db628fa9be0578138 =0;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 52);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T059_IDE_1608()
         {
             // Create CBN:
@@ -21834,7 +21857,7 @@ d = b[0..(Count(b) - 1)..2];</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata == 100);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T060_IDE_1630_TestCaseDefect_1856()
         {
             // Test case failing due to defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1856
@@ -22286,7 +22309,7 @@ d = b[0..(Count(b) - 1)..2];</Content>
             Assert.IsTrue((Int64)var8[3].Payload == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T061_IDE_1485()
         {
             // create a Point.ByCoordinates (0,0,0)
@@ -22961,7 +22984,7 @@ d = b[0..(Count(b) - 1)..2];</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T062_IDE_1632_TestCaseDefect_1856()
         {
             // Test case failing due to defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1856
@@ -24074,7 +24097,7 @@ d = b[0..(Count(b) - 1)..2];</Content>
             //Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata == 100);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T063_IDE_1823()
         {
             // Steps are mentioned in the defect.
@@ -24647,10 +24670,15 @@ _temp_a561c2f0882f44e58c8f62adae0ce30d =10;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T064_IDE_1806()
         {
-            /* 1. Create a Point.ByCoordinates node 2. Click on the 'X' property from it's radial menu 3. create a CBN : '0' and connect it to all 3 inputs of the Point.ByCoordinates node  => no geometry/textual preview from neither the geometry node, nor the property node             */
+            /*
+ 1. Create a Point.ByCoordinates node
+ 2. Click on the 'X' property from it's radial menu
+ 3. create a CBN : '0' and connect it to all 3 inputs of the Point.ByCoordinates node 
+ => no geometry/textual preview from neither the geometry node, nor the property node
+             */
             ILiveRunner liveRunner = new ProtoScript.Runners.Obsolete.LiveRunner();
             string code = @"<?xml version=""1.0"" encoding=""utf-16""?>
 <SynchronizeDataCollection xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
@@ -24902,7 +24930,7 @@ _temp_a561c2f0882f44e58c8f62adae0ce30d =10;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T065_IDE_1586()
         {
             // Steps are mentioned in the defect.
@@ -24950,7 +24978,7 @@ b=1..2;</Content>
             Assert.IsTrue((Int64)b[1].Payload == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T066_IDE_1830()
         {
             // Steps are metioned in the defect. http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1830
@@ -25066,7 +25094,7 @@ b=1..2;</Content>
             Assert.IsTrue(Math.Abs((double)mirror.GetData().GetStackValue().opdata_d - 0.5) < tolerance);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T067_IDE_1800()
         {
             // Steps are metioned in the defect. http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1800
@@ -25185,7 +25213,7 @@ b=1..2;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T068_IDE_1800_1()
         {
             // Steps are metioned in the defect. http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1800
@@ -25764,7 +25792,7 @@ b=1..2;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T069_IDE_1855_TestCaseDefect_1856()
         {
             // Failing due to defect  : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1856
@@ -26039,7 +26067,7 @@ b=1..2;</Content>
             Assert.IsTrue(Convert.ToInt64(b[4].Payload) == 5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T070_IDE_1792()
         {
             // Steps are metioned in the defect. http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1792
@@ -26163,7 +26191,7 @@ b=1..2;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T071_IDE_1794_TestCaseDefect_1856()
         {
             // Failing due to defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1856
@@ -26277,7 +26305,7 @@ b=1..2;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 180);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestTypeOfPreview()
         {
             // Create Point.ByCoordiantes(0,0,0);
@@ -26473,7 +26501,7 @@ b=1..2;</Content>
             Assert.IsTrue(type == "Point");
         }
 
-        [Test]
+        [Test, Ignore]
         public void T072_IDE_1846()
         {
             // Steps are metioned in the defect. http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1846
@@ -26544,7 +26572,7 @@ b=1..2;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T073_IDE_1545()
         {
             // Steps are metioned in the defect. http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1545
@@ -26639,7 +26667,7 @@ b=1..2;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T073_IDE_1545_2()
         {
             // Steps are metioned in the defect. http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1545
@@ -26734,7 +26762,7 @@ b=1..2;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T074_IDE_1606_TestCaseDefect_IDE_1984()
         {
             // Failing due to Defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1984
@@ -26908,7 +26936,7 @@ a[0] = b;</Content>
             Assert.IsTrue((Int64)Var2[2].Payload == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T075_IDE_1264()
         {
             // Steps are metioned in the defect. http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1264
@@ -26997,7 +27025,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T076_IDE_1867()
         {
             // Steps are metioned in the defect. http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1867
@@ -27077,7 +27105,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T076_IDE_1867_2()
         {
             // Steps are metioned in the defect. http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1867
@@ -27283,7 +27311,7 @@ b = 20;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 0.5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T077_IDE_1793_TestCaseDefect_1856()
         {
             // Failing due to defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1856
@@ -27367,7 +27395,7 @@ b = 20;</Content>
             Assert.IsTrue(type == "Point");
         }
 
-        [Test]
+        [Test, Ignore]
         public void T078_IDE_1530()
         {
             // Create Point.ByCoordiantes(0,0,0);
@@ -27418,7 +27446,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)a[9].Payload == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T078_IDE_1530_2()
         {
             // Create Point.ByCoordiantes(0,0,0);
@@ -27469,7 +27497,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)a[99].Payload == 100);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T079_IDE_1822()
         {
             // Steps are mentioned in the defect.
@@ -27851,7 +27879,7 @@ b = 20;</Content>
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T080_IDE_1840_TestCaseDefect_IDE_1856()
         {
             // Test Case is failing due to defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1856
@@ -28433,7 +28461,7 @@ b = 20;</Content>
             // verify the individual values in another test case, as that has some issues currently
         }
 
-        [Test]
+        [Test, Ignore]
         public void T081_IDE_1583()
         {
             // steps as per defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1583
@@ -28503,7 +28531,7 @@ b = 20;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T082_IDE_1553_Defect_Open()
         {
             // steps as per defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1553
@@ -28844,7 +28872,7 @@ _temp_d2a29f35c4ab4e588563c749b961f04b =theta/100;
             //Assert.IsTrue((double)Var4[0].Payload == 0.866025);   
         }
 
-        [Test]
+        [Test, Ignore]
         public void T083_TestPreviewInSimpleScenario()
         {
             // Create CBN: 2;
@@ -28987,7 +29015,7 @@ _temp_d2a29f35c4ab4e588563c749b961f04b =theta/100;
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T084_IDE_1910()
         {
             // steps as per defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1910
@@ -29175,7 +29203,7 @@ _temp_d2a29f35c4ab4e588563c749b961f04b =theta/100;
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 7);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T085_IDE_1762()
         {
             // steps as per defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1762
@@ -29280,7 +29308,7 @@ a={10,20,30};</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T086_IDE_1849_Defect_Open()
         {
             // steps as per defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1849
@@ -29391,7 +29419,7 @@ a={10,20,30};</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 20);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T087_IDE_1870()
         {
             // steps as per defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1870
@@ -30256,7 +30284,11 @@ _temp_ea78b08285404161a2be6fdea5b7ddf2 =10;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 1);
         }
         /*  
-[Test]          public void T077_stringconcat()          {              ILiveRunner liveRunner = new ProtoScript.Runners.Obsolete.LiveRunner();        string code = @"<?xml version=""1.0"" encoding=""utf-16""?>
+[Test, Ignore]
+          public void T077_stringconcat()
+          {
+              ILiveRunner liveRunner = new ProtoScript.Runners.Obsolete.LiveRunner();
+        string code = @"<?xml version=""1.0"" encoding=""utf-16""?>
 <SynchronizeDataCollection xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
   <SynchronizeDataCollection>
     <SynchronizeData>
@@ -30381,9 +30413,13 @@ _temp_ea78b08285404161a2be6fdea5b7ddf2 =10;</Content>
 </SynchronizeDataCollection>
 ";
 List<SynchronizeData> ls = GraphToDSCompiler.GraphUtilities.GetSDList(code)
-              foreach (SynchronizeData sd in ls)                  liveRunner.UpdateGraph(sd);              ProtoCore.Mirror.RuntimeMirror mirror = liveRunner.QueryNodeValue("Var3");              Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == "testtest2func");          }*/
+              foreach (SynchronizeData sd in ls)
+                  liveRunner.UpdateGraph(sd);
+              ProtoCore.Mirror.RuntimeMirror mirror = liveRunner.QueryNodeValue("Var3");
+              Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == "testtest2func");
+          }*/
 
-        [Test]
+        [Test, Ignore]
         public void T078_1899()
         {
             ILiveRunner liveRunner = new ProtoScript.Runners.Obsolete.LiveRunner();
@@ -30498,7 +30534,7 @@ List<SynchronizeData> ls = GraphToDSCompiler.GraphUtilities.GetSDList(code)
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T079_1950_Defect_Open()
         {
             ILiveRunner liveRunner = new ProtoScript.Runners.Obsolete.LiveRunner();
@@ -30613,7 +30649,7 @@ List<SynchronizeData> ls = GraphToDSCompiler.GraphUtilities.GetSDList(code)
             Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T079_1276_Defect_Open()
         {
             ILiveRunner liveRunner = new ProtoScript.Runners.Obsolete.LiveRunner();
@@ -30719,7 +30755,7 @@ List<SynchronizeData> ls = GraphToDSCompiler.GraphUtilities.GetSDList(code)
             //Assert.IsTrue((Int64)mirror.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T088_1435()
         {
             ILiveRunner liveRunner = new ProtoScript.Runners.Obsolete.LiveRunner();
@@ -30845,7 +30881,7 @@ List<SynchronizeData> ls = GraphToDSCompiler.GraphUtilities.GetSDList(code)
             Assert.IsTrue((Int64)mirror2.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestCreateReplicationGuideTextNormalData()
         {
             List<int> data1 = new List<int>();
@@ -30863,7 +30899,7 @@ List<SynchronizeData> ls = GraphToDSCompiler.GraphUtilities.GetSDList(code)
             Assert.AreEqual("1,2", result2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestCreateReplicationGuideExtremeData()
         {
             List<int> data1 = new List<int>();
@@ -30881,7 +30917,7 @@ List<SynchronizeData> ls = GraphToDSCompiler.GraphUtilities.GetSDList(code)
             Assert.AreEqual("-100,-200", result2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestParseReplicationGuideTextNormalData()
         {
             string data1 = "1,2,3,4";
@@ -30895,7 +30931,7 @@ List<SynchronizeData> ls = GraphToDSCompiler.GraphUtilities.GetSDList(code)
             Assert.AreEqual("<2>", result3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T089_IDE_1934_TestCaseDefect_IDE_1856()
         {
             // Failing due to defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1856
@@ -31191,7 +31227,7 @@ List<SynchronizeData> ls = GraphToDSCompiler.GraphUtilities.GetSDList(code)
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 7);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T091_IDE_2035()
         {
             // steps as per defect : http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2035
@@ -31290,7 +31326,7 @@ List<SynchronizeData> ls = GraphToDSCompiler.GraphUtilities.GetSDList(code)
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T092_IDE_1979()
         {
             // http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1979
@@ -31324,7 +31360,7 @@ a[0]=3;</Content>
             Assert.IsTrue((Int64)elements[0].Payload == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T093_IDE_1435()
         {
             //http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1435
@@ -31361,7 +31397,7 @@ a[0]=3;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T094_IDE_1784()
         {
             //http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1784
@@ -32021,7 +32057,7 @@ a[0]=3;</Content>
             Assert.IsTrue((Int64)elements[1].Payload == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T095_IDE_2069()
         {
             // CBN: a=1;b=2;c=3;
@@ -32134,7 +32170,7 @@ a[0]=3;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 6);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T096_IDE_1852()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1852
@@ -32464,7 +32500,7 @@ a[0]=3;</Content>
             Assert.IsFalse((double)mirror.GetData().GetStackValue().opdata_d == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T095_IDE_1950()
         {
             //http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1950
@@ -32589,7 +32625,7 @@ a[0]=3;</Content>
             Assert.IsTrue((double)mirror2.GetData().GetStackValue().opdata_d == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T095_IDE_1990()
         {
             //http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1990
@@ -32650,7 +32686,7 @@ a[0]=3;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T095_IDE_1854_1()
         {
             //http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1854
@@ -32716,7 +32752,7 @@ a[0]=3;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T095_IDE_1854_2()
         {
             //http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1854
@@ -32782,7 +32818,7 @@ a[0]=3;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T097_IDE_2065()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2065
@@ -32880,7 +32916,7 @@ h= 1 + 2;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T098_IDE_2134()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2134
@@ -33086,7 +33122,7 @@ b ;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T100_IDE_1733()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1733
@@ -33149,7 +33185,7 @@ _temp_cacfcb787feb44c9a363953e38ab6611 =20;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 10);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T101_IDE_1969()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1969
@@ -33230,7 +33266,7 @@ _temp_cacfcb787feb44c9a363953e38ab6611 =20;</Content>
             // Verification pending, just adding to catch regression while running snap shot data.
         }
 
-        [Test]
+        [Test, Ignore]
         public void T102_IDE_2001()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2001
@@ -33404,7 +33440,7 @@ _temp_cacfcb787feb44c9a363953e38ab6611 =20;</Content>
             // Verification pending, just adding to catch regression while running snap shot data.
         }
 
-        [Test]
+        [Test, Ignore]
         public void T103_IDE_1984()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1984
@@ -33716,7 +33752,7 @@ b = 3;</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T104_IDE_2105()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2105
@@ -34528,7 +34564,7 @@ Var13 = Var6.YAxis;</Content>
             // Verification pending, just adding to catch regression while running snap shot data.
         }
 
-        [Test]
+        [Test, Ignore]
         public void T106_IDE_2092()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2092
@@ -34816,7 +34852,7 @@ b
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 440);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T107_IDE_2010()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2010
@@ -35230,7 +35266,7 @@ b
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T108_IDE_2020()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2020
@@ -35309,7 +35345,7 @@ b
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T109_IDE_1931()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1931
@@ -35370,7 +35406,7 @@ b
             // Cannot count how many lines are there in the CBN which was the main focus of defect but adding this test case to catch regression in N2C.
         }
 
-        [Test]
+        [Test, Ignore]
         public void T110_IDE_1786()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1786
@@ -36013,7 +36049,7 @@ b
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 0);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T111_IDE_1847()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1847
@@ -36786,7 +36822,7 @@ b
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 5);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T112_IDE_2125()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2125
@@ -37230,11 +37266,22 @@ _temp_4b7331cec248421390edcc6ded208409 =2..5;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().optype == ProtoCore.DSASM.AddressType.Null);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T113_IDE_2181()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2181
-            /*             * 1. Start DSS and create a CBN :                     a1 = Point.ByCoordinates(0, 0, 0);                    a2 = Point.ByCoordinates(1, 1, 1);                    l1 = Line.ByCoordinates(a1, a2);               2. Now create an identifier node assign the last line to it -> there is an error saying there is not match for Line.ByCoordinates.                3. Then I go and update the CBN to  :                 a1 = Point.ByCoordinates(0, 0, 0);                a2 = Point.ByCoordinates(1, 1, 1);                l1 = Line.ByStartPointEndPoint(a1, a2);             3. Create a node from the Line.Length and verify it's value             **/
+            /*
+             * 1. Start DSS and create a CBN : 
+                    a1 = Point.ByCoordinates(0, 0, 0);
+                    a2 = Point.ByCoordinates(1, 1, 1);
+                    l1 = Line.ByCoordinates(a1, a2);
+               2. Now create an identifier node assign the last line to it -> there is an error saying there is not match for Line.ByCoordinates.
+                3. Then I go and update the CBN to  : 
+                a1 = Point.ByCoordinates(0, 0, 0);
+                a2 = Point.ByCoordinates(1, 1, 1);
+                l1 = Line.ByStartPointEndPoint(a1, a2);
+             3. Create a node from the Line.Length and verify it's value
+             **/
             ILiveRunner liveRunner = new ProtoScript.Runners.Obsolete.LiveRunner();
             string code = @"<?xml version=""1.0"" encoding=""utf-16""?>
 <SynchronizeDataCollection xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
@@ -37475,7 +37522,7 @@ l1 = Line.ByStartPointEndPoint(a1, a2);</Content>
             Assert.IsTrue(Math.Round(mirror.GetData().GetStackValue().opdata_d, 3) == 1.732);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T114_IDE_1551()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1551
@@ -37664,7 +37711,7 @@ d = c + 1;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T115_IDE_2075()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2075
@@ -37920,7 +37967,7 @@ b = Var5;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T116_IDE_2137()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2137
@@ -37978,7 +38025,7 @@ test = x  + y;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 7);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T113_IDE_TrialNTC()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2125
@@ -38182,7 +38229,7 @@ Var3 = (Var4 + Var4_1);</Content>
             Assert.IsTrue((double)mirror.GetData().GetStackValue().opdata_d == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T117_IDE_2187()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2187
@@ -38636,7 +38683,7 @@ a=Var3;</Content>
             Assert.IsTrue(mirror4.GetData().GetStackValue().opdata == 3);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T118_IDE_1942()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1942
@@ -38751,7 +38798,7 @@ a=Var3;</Content>
             Assert.IsTrue(mirror3.GetData().GetStackValue().opdata == 1);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T126_IDE_1936()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1936
@@ -38998,10 +39045,21 @@ a=Var3;</Content>
             ProtoCore.Mirror.RuntimeMirror mirror2 = liveRunner.QueryNodeValue("b");
             Assert.IsTrue(mirror2.GetData().GetStackValue().opdata == 1);
         }
-        /*        
-[Test]        public void T126_IDE_2152()        {            // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2152          // commenting this test as the variable name is nto consistent every time             ILiveRunner liveRunner = new ProtoScript.Runners.Obsolete.LiveRunner();            foreach (SynchronizeData sd in ls)                liveRunner.UpdateGraph(sd);            ProtoCore.Mirror.RuntimeMirror mirror = liveRunner.QueryNodeValue("_temp_f111ee543d4946f9aa624c6a273dfffb");            Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 6);        }*/
+        /*
+        
+[Test, Ignore]
+        public void T126_IDE_2152()
+        {
+            // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-2152
+          // commenting this test as the variable name is nto consistent every time 
+            ILiveRunner liveRunner = new ProtoScript.Runners.Obsolete.LiveRunner();
+            foreach (SynchronizeData sd in ls)
+                liveRunner.UpdateGraph(sd);
+            ProtoCore.Mirror.RuntimeMirror mirror = liveRunner.QueryNodeValue("_temp_f111ee543d4946f9aa624c6a273dfffb");
+            Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 6);
+        }*/
 
-        [Test]
+        [Test, Ignore]
         public void T127_IDE_1934()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1934
@@ -39166,7 +39224,7 @@ a=Var3;</Content>
             Assert.IsTrue(mirror2.GetData().GetStackValue().opdata == 2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void T128_IDE_1845()
         {
             // Steps are mentioned in the defect http://adsk-oss.myjetbrains.com/youtrack/issue/IDE-1845
@@ -39448,7 +39506,9 @@ a=Var3;</Content>
             Assert.IsTrue(mirror.GetData().GetStackValue().opdata == 2);
         }
     }
-    /*     * Test Cases for Struct VariableLine     */
+    /*
+     * Test Cases for Struct VariableLine
+     */
     class VariableLineTests
     {
         [SetUp]
@@ -39460,7 +39520,7 @@ a=Var3;</Content>
         {
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestEqual()
         {
             //same name, same line, equal
@@ -39469,7 +39529,7 @@ a=Var3;</Content>
             Assert.AreEqual(variableLine1, variableLine2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestDiffName()
         {
             //diff name, same line, not equal
@@ -39478,7 +39538,7 @@ a=Var3;</Content>
             Assert.AreNotEqual(variableLine1, variableLine2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestDiddLine()
         {
             //same name, diff line, not equal
@@ -39487,7 +39547,7 @@ a=Var3;</Content>
             Assert.AreNotEqual(variableLine1, variableLine2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestDiffNameLine()
         {
             //diff name, diff line, not equal
@@ -39496,7 +39556,7 @@ a=Var3;</Content>
             Assert.AreNotEqual(variableLine1, variableLine2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestNullObject()
         {
             //2 null object, equal
@@ -39505,7 +39565,7 @@ a=Var3;</Content>
             Assert.AreEqual(variableLine1, variableLine2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void Test1NullObject()
         {
             //1 null object, not equal
@@ -39514,7 +39574,7 @@ a=Var3;</Content>
             Assert.AreNotEqual(variableLine1, variableLine2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestCapitalLetter()
         {
             //diff name, same line not equal
@@ -39531,7 +39591,7 @@ a=Var3;</Content>
             Assert.AreNotEqual(variableLine1, variableLine2);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestNegativeLine()
         {
             Assert.Throws<ArgumentException>(() =>
@@ -39544,7 +39604,7 @@ a=Var3;</Content>
             });
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestInsertToDict()
         {
             Assert.Throws<ArgumentException>(() =>

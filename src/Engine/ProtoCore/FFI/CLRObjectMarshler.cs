@@ -222,7 +222,7 @@ namespace ProtoFFI
 
         public override StackValue Marshal(object obj, ProtoCore.Runtime.Context context, Interpreter dsi, ProtoCore.Type type)
         {
-            return StackUtils.BuildInt(System.Convert.ToInt64(obj));
+            return StackValue.BuildInt(System.Convert.ToInt64(obj));
         }
 
         public override object UnMarshal(StackValue dsObject, ProtoCore.Runtime.Context context, Interpreter dsi, Type type)
@@ -257,7 +257,7 @@ namespace ProtoFFI
 
         public override StackValue Marshal(object obj, ProtoCore.Runtime.Context context, Interpreter dsi, ProtoCore.Type type)
         {
-            return StackUtils.BuildDouble(System.Convert.ToDouble(obj));
+            return StackValue.BuildDouble(System.Convert.ToDouble(obj));
         }
 
         public override object UnMarshal(StackValue dsObject, ProtoCore.Runtime.Context context, Interpreter dsi, Type type)
@@ -282,7 +282,7 @@ namespace ProtoFFI
 
         public override StackValue Marshal(object obj, ProtoCore.Runtime.Context context, Interpreter dsi, ProtoCore.Type type)
         {
-            return StackUtils.BuildNode(AddressType.Boolean, (bool)obj ? 1 : 0);
+            return StackValue.BuildBoolean((bool)obj);
         }
 
         public override object UnMarshal(StackValue dsObject, ProtoCore.Runtime.Context context, Interpreter dsi, Type type)
@@ -301,7 +301,7 @@ namespace ProtoFFI
 
         public override StackValue Marshal(object obj, ProtoCore.Runtime.Context context, Interpreter dsi, ProtoCore.Type type)
         {
-            return StackUtils.BuildChar((char)obj);
+            return StackValue.BuildChar((char)obj);
         }
 
         public override object UnMarshal(StackValue dsObject, ProtoCore.Runtime.Context context, Interpreter dsi, Type type)
@@ -324,7 +324,7 @@ namespace ProtoFFI
         {
             string str = (string)obj;
             StackValue dsarray = PrimitiveMarshler.ConvertCSArrayToDSArray(kCharMarshaler, str.ToCharArray(), context, dsi, type);
-            return StackUtils.BuildString(dsarray.opdata);
+            return StackValue.BuildString(dsarray.opdata);
         }
 
         public override object UnMarshal(StackValue dsObject, ProtoCore.Runtime.Context context, Interpreter dsi, Type type)
@@ -414,7 +414,7 @@ namespace ProtoFFI
         {
             if (obj == null)
             {
-                return StackUtils.BuildNull();
+                return StackValue.Null;
             }
 
             FFIObjectMarshler marshaler = null;
@@ -777,7 +777,7 @@ namespace ProtoFFI
 
             MetaData metadata;
             metadata.type = type;
-            StackValue retval = StackUtils.BuildPointer(ptr, metadata);
+            StackValue retval = StackValue.BuildPointer(ptr, metadata);
             BindObjects(obj, retval);
             dsi.runtime.Core.FFIPropertyChangedMonitor.AddFFIObject(obj);
 
@@ -1075,11 +1075,28 @@ namespace ProtoFFI
         }
 
         private readonly Dictionary<StackValue, Object> DSObjectMap = new Dictionary<StackValue, object>(new PointerValueComparer());
-        private readonly Dictionary<Object, StackValue> CLRObjectMap = new Dictionary<object, StackValue>();
+        private readonly Dictionary<Object, StackValue> CLRObjectMap = new Dictionary<object, StackValue>(new ReferenceEqualityComparer());
         private static readonly Dictionary<ProtoCore.Core, CLRObjectMarshler> mObjectMarshlers = new Dictionary<ProtoCore.Core, CLRObjectMarshler>();
         private static List<IDisposable> mPendingDisposables = new List<IDisposable>();
         private static readonly Object syncroot = new Object();
         #endregion
+    }
+
+    /// <summary>
+    /// This class compares two CLR objects. It is used in CLRObjectMap to 
+    /// avoid hash collision. 
+    /// </summary>
+    public class ReferenceEqualityComparer: IEqualityComparer<object>
+    {
+        public bool Equals(object x, object y)
+        {
+            return object.ReferenceEquals(x, y);
+        }
+
+        public int GetHashCode(object obj)
+        {
+            return obj.GetHashCode();
+        }
     }
 
     /// <summary>

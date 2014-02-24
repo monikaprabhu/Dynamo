@@ -6,8 +6,10 @@ using System.Windows.Controls;
 using Dynamo;
 using Dynamo.Controls;
 using Dynamo.FSchemeInterop;
+using Dynamo.Interfaces;
 using Dynamo.Tests.UI;
 using Dynamo.UI.Controls;
+using Dynamo.Units;
 using Dynamo.UpdateManager;
 using Dynamo.Utilities;
 using Dynamo.ViewModels;
@@ -18,14 +20,15 @@ using Moq;
 namespace DynamoCoreUITests
 {
     [TestFixture]
-    public class UpdateManagerNotUpToDateTests : DynamoTestUI
+    public class UpdateManagerUITests : DynamoTestUI
     {
         private void Init(IUpdateManager updateManager)
         {
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyHelper.CurrentDomain_AssemblyResolve;
 
             var env = new ExecutionEnvironment();
-            Controller = new DynamoController(env, typeof(DynamoViewModel), "None", null, updateManager)
+
+            Controller = new DynamoController(env, typeof(DynamoViewModel), "None", null, updateManager, new UnitsManager(), new DefaultWatchHandler(), new PreferenceSettings())
             {
                 Testing = true
             };

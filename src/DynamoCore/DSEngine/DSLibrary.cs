@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using GraphToDSCompiler;
+using ProtoCore.AST.AssociativeAST;
 using ProtoCore.DSASM;
 using ProtoCore.Utils;
 using ProtoFFI;
@@ -32,8 +33,9 @@ namespace Dynamo.DSEngine
     {
         public string Parameter { get; private set; }
         public string Type { get; private set; }
+        public object DefaultValue { get; private set; }
 
-        public TypedParameter(string parameter, string type)
+        public TypedParameter(string parameter, string type, object defaultValue = null)
         {
             if (string.IsNullOrEmpty(parameter))
             {
@@ -46,18 +48,24 @@ namespace Dynamo.DSEngine
                 throw new ArgumentNullException("Type cannot be null.");
             }
             Type = type;
+            DefaultValue = defaultValue;
         }
 
         public override string ToString()
         {
-            if (String.IsNullOrEmpty(Type))
+            string str = Parameter;
+            
+            if (!String.IsNullOrEmpty(Type))
             {
-                return Parameter;
+                str = Parameter + ": " + Type.Split('.').Last();
             }
-            else
+
+            if (DefaultValue != null)
             {
-                return Parameter + ": " + Type.Split('.').Last();
+                str = str + " = " + DefaultValue.ToString();
             }
+
+            return str;
         }
     }
 
@@ -120,6 +128,15 @@ namespace Dynamo.DSEngine
         {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Does the function accept a variable number of arguments?
+        /// </summary>
+        public bool IsVarArg 
+        { 
+            get; 
+            private set; 
         }
 
         /// <summary>
@@ -294,7 +311,8 @@ namespace Dynamo.DSEngine
                             IEnumerable<TypedParameter> parameters,
                             string returnType,
                             FunctionType type,
-                            IEnumerable<string> returnKeys = null)
+                            IEnumerable<string> returnKeys = null,
+                            bool isVarArg = false)
         {
             Assembly = assembly;
             ClassName = className;
@@ -303,6 +321,7 @@ namespace Dynamo.DSEngine
             ReturnType = returnType;
             Type = type;
             ReturnKeys = returnKeys;
+            IsVarArg = isVarArg;
         }
     }
 
@@ -490,10 +509,10 @@ namespace Dynamo.DSEngine
 
             _libraries = new List<string>
             {
-                "Math.dll",
                 "ProtoGeometry.dll",
                 "DSCoreNodes.dll",
-                "FunctionObject.ds"
+                "FunctionObject.ds",
+                "DSIronPython.dll"
             };
 
             GraphUtilities.PreloadAssembly(_libraries);
@@ -903,14 +922,57 @@ namespace Dynamo.DSEngine
                 }
             }
 
-            var arguments = proc.argInfoList.Zip(proc.argTypeList, (arg, argType) => new TypedParameter(arg.Name, argType.ToString()));
+            var arguments = proc.argInfoList.Zip(proc.argTypeList, 
+                (arg, argType) => 
+                {
+                    object defaultValue = null;
+                    if (arg.isDefault)
+                    {
+                        var binaryExpr = arg.defaultExpression as BinaryExpressionNode;
+                        if (binaryExpr != null)
+                        {
+                            var vnode = binaryExpr.RightNode;
+                            if (vnode is IntNode)
+                            {
+                                long v;
+                                if (Int64.TryParse((vnode as IntNode).value, out v))
+                                {
+                                    defaultValue = v;
+                                }
+                            }
+                            else if (vnode is DoubleNode)
+                            {
+                                double v;
+                                if (Double.TryParse((vnode as DoubleNode).value, out v))
+                                {
+                                    defaultValue = v;
+                                }
+                            }
+                            else if (vnode is BooleanNode)
+                            {
+                                bool v;
+                                if (Boolean.TryParse((vnode as BooleanNode).value, out v))
+                                {
+                                    defaultValue = v;
+                                }
+                            }
+                            else if (vnode is StringNode)
+                            {
+                                defaultValue = (vnode as StringNode).value; 
+                            }
+                        }
+                    }
+
+                    return new TypedParameter(arg.Name, argType.ToString(), defaultValue);
+                });
+
             IEnumerable<string> returnKeys = null;
             if (proc.MethodAttribute != null && proc.MethodAttribute.MutilReturnMap != null)
             {
                 returnKeys = proc.MethodAttribute.MutilReturnMap.Keys;
             }
 
-            var function = new FunctionDescriptor(library, className, procName, arguments, proc.returntype.ToString(), type, returnKeys);
+            var function = new FunctionDescriptor(library, className, procName, arguments, proc.returntype.ToString(), type, returnKeys, proc.isVarArg);
             AddImportedFunctions(library, new FunctionDescriptor[] { function });
         }
 
