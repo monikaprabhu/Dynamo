@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using Dynamo.Controls;
-using Dynamo.FSchemeInterop;
 using Dynamo.Models;
 using Dynamo.Nodes;
 using Dynamo.Utilities;
@@ -535,7 +533,7 @@ namespace Dynamo.Tests
         {
             var model = dynSettings.Controller.DynamoModel;
 
-            model.CreateNode(400.0, 100.0, "Dynamo.Nodes.Addition");
+            model.CreateNode(Guid.NewGuid(), "+@,", 0, 0, true, true);
             model.CreateNode(100.0, 100.0, "Number");
             model.CreateNode(100.0, 300.0, "Number");
             model.CreateNode(100.0, 300.0, "Dynamo.Nodes.Watch");
@@ -578,10 +576,26 @@ namespace Dynamo.Tests
             Assert.AreEqual(Controller.DynamoViewModel.Model.Nodes[3] is Watch, true);
 
             var w = (Watch)Controller.DynamoViewModel.Model.Nodes[3];
-            double val = 0.0;
-            Assert.AreEqual(true, Utils.Convert(w.OldValue, ref val) );
-            Assert.AreEqual(4.0, val);
+            Assert.AreEqual(4.0, w.OldValue.Data);
+        }
 
+        [Test]
+        public void CanOpenDSVarArgFunctionFile()
+        {
+            string openPath = Path.Combine(GetTestDirectory(),
+                @"core\dsfunction\dsvarargfunction.dyn");
+
+            var dynamoModel = dynSettings.Controller.DynamoModel;
+            var workspace = dynamoModel.CurrentWorkspace;
+            dynamoModel.Open(openPath);
+            Assert.AreEqual(1, workspace.Nodes.Count);
+
+            var node = workspace.NodeFromWorkspace<DSVarArgFunction>(
+                Guid.Parse("a182d3f8-bb7d-4480-8aa5-eaacd6161415"));
+
+            Assert.IsNotNull(node);
+            Assert.IsNotNull(node.Definition);
+            Assert.AreEqual(3, node.InPorts.Count);
         }
         
         [Test]

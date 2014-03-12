@@ -143,7 +143,7 @@ namespace ProtoTest.Associative
             String code =
 @"	class f	{		fx : var;		fy : var;		constructor f()		{			fx = 123;			fy = 345;		}	}		class g	{		gx : var;		gy : var;		constructor g()		{			// Construct a class within a class			gx = f.f();			gy = 678;		}	}	// Construct class 'g'	cg = g.g();	// Resolution assignment	cg.gx.fx = 10001;	somevar = cg.gx.fx;	// Construct class 'f'	cf = f.f();	cf.fx = 888888;	cf.fy = 999999;	// Re-assign an instance of class 'gx' in class 'cg' with new class 'cf'	cg.gx = cf;	another = cg.gx.fx;	cf2 = cg.gx;	xx = cf2.fx;	yy = cf2.fy;";
             ExecutionMirror mirror = thisTest.RunScriptSource(code);
-            Assert.IsTrue((Int64)mirror.GetValue("somevar").Payload == 888888);
+            Assert.IsTrue((Int64)mirror.GetValue("somevar").Payload == 10001);
             Assert.IsTrue((Int64)mirror.GetValue("another").Payload == 888888);
             Assert.IsTrue((Int64)mirror.GetValue("xx").Payload == 888888);
             Assert.IsTrue((Int64)mirror.GetValue("yy").Payload == 999999);
@@ -1228,6 +1228,25 @@ r = a[null];
             ExecutionMirror mirror = thisTest.RunScriptSource(code);
             thisTest.Verify("a", new object[] { 4, 5 });
             thisTest.Verify("b", new object[] { 5, 6 });
+        }
+
+
+
+        [Test]
+        public void TestReplicationGuideWithLongestProperty01()
+        {
+            String code =
+@"
+def f(i:int, j:int)
+{
+    return = i + j;
+}
+
+a = 1..3;
+b = 2..3;
+c = f(a<1L>,b<2>);";
+            ExecutionMirror mirror = thisTest.RunScriptSource(code);
+            thisTest.Verify("c", new Object[] { new object[] { 3, 4 }, new object[] { 4, 5 }, new object[] { 5, 6 } });
         }
 
         [Test]

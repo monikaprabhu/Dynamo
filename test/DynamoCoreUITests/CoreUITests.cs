@@ -39,7 +39,7 @@ namespace Dynamo.Tests.UI
             PreferenceSettings.DYNAMO_TEST_PATH = Path.Combine(TempFolder, "UserPreferenceTest.xml");
 
             Controller = DynamoController.MakeSandbox();
-            Controller.Testing = true;
+            DynamoController.IsTestMode = true;
 
             //create the view
             Ui = new DynamoView();
@@ -625,7 +625,7 @@ namespace Dynamo.Tests.UI
             PreferenceSettings.DYNAMO_TEST_PATH = Path.Combine(TempFolder, "UserPreferenceTest.xml");
 
             Controller = DynamoController.MakeSandbox();
-            Controller.Testing = true;
+            DynamoController.IsTestMode = true;
 
             //create the view
             Ui = new DynamoView();
@@ -747,5 +747,13 @@ namespace Dynamo.Tests.UI
 
 
         #endregion
+
+        //[Test]
+        //public void CrashPresentsSaveAs()
+        //{
+        //    dynSettings.Controller.IsCrashing = true;
+        //    dynSettings.Controller.DynamoModel.HomeSpace.HasUnsavedChanges = true;
+        //    dynSettings.Controller.DynamoViewModel.Exit(false);
+        //}
     }
 }

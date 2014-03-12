@@ -327,6 +327,8 @@ namespace Dynamo.ViewModels
             }
         }
 
+        internal AutomationSettings Automation { get { return this.automationSettings; } }
+
         public string EditName
         {
             get { return _model.editName; }
@@ -513,6 +515,7 @@ namespace Dynamo.ViewModels
                 return licensePath;
             }
         }
+
         #endregion
 
         public DynamoViewModel(DynamoController controller, string commandFilePath)
@@ -781,7 +784,8 @@ namespace Dynamo.ViewModels
         /// <param name="workspace">The workspace for which to show the dialog</param>
         internal void ShowSaveDialogIfNeededAndSave(WorkspaceModel workspace)
         {
-            if (workspace.FileName != null)
+            // crash sould always allow save as
+            if (workspace.FileName != null && !dynSettings.Controller.IsCrashing)
             {
                 workspace.Save();
             }
@@ -884,10 +888,9 @@ namespace Dynamo.ViewModels
             vm.OnZoomChanged(this, new ZoomEventArgs(newWs.Zoom));
         }
 
-        public virtual Function CreateFunction(IEnumerable<string> inputs, IEnumerable<string> outputs,
-                                                     CustomNodeDefinition customNodeDefinition)
+        public virtual Function CreateFunction(CustomNodeDefinition customNodeDefinition)
         {
-            return new Function(inputs, outputs, customNodeDefinition);
+            return new Function(customNodeDefinition);
         }
 
         /// <summary>
@@ -1123,7 +1126,7 @@ namespace Dynamo.ViewModels
                 // behind unsaved changes (if saving is desired, then the save command 
                 // should have been recorded for the test case to it can be replayed).
                 // 
-                if (automationSettings.CurrentMode == AutomationSettings.Mode.Playback)
+                if (automationSettings.IsInPlaybackMode)
                     return true; // In playback mode, just exit without saving.
             }
 
@@ -1646,7 +1649,7 @@ namespace Dynamo.ViewModels
 
         public void GetBranchVisualization(object parameters)
         {
-            dynSettings.Controller.VisualizationManager.RenderUpstream(null);
+            dynSettings.Controller.VisualizationManager.AggregateUpstreamRenderPackages(null);
         }
 
         public bool CanGetBranchVisualization(object parameter)

@@ -6,13 +6,10 @@ using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Xml;
-using DSCoreNodesUI;
 using Dynamo.Controls;
 using Dynamo.Models;
 using Dynamo.Nodes;
 using Dynamo.Utilities;
-using DynamoUtilities;
-using IronPython.Hosting;
 using ProtoCore.AST.AssociativeAST;
 
 namespace DSIronPythonNode
@@ -73,11 +70,13 @@ namespace DSIronPythonNode
     {
         public PythonNode()
         {
-            _script = "# Default imports\n\n"
+            _script = "import clr\nclr.AddReference('ProtoGeometry')\nfrom Autodesk.DesignScript.Geometry import *\n"
                 + "#The inputs to this node will be stored as a list in the IN variable.\n"
                 + "dataEnteringNode = IN\n\n"
                 + "#Assign your output to the OUT variable\n"
                 + "OUT = 0";
+
+
             RegisterAllPorts();
         }
 
@@ -121,7 +120,11 @@ namespace DSIronPythonNode
         {
             var editWindow = new ScriptEditorWindow();
             editWindow.Initialize(GUID, "ScriptContent", Script);
-            editWindow.ShowDialog();
+            bool? acceptChanged = editWindow.ShowDialog();
+            if (acceptChanged.HasValue && acceptChanged.Value)
+            {
+                this.RequiresRecalc = true;
+            }
         }
 
         public override IEnumerable<AssociativeNode> BuildOutputAst(

@@ -52,7 +52,7 @@ namespace Dynamo.Nodes
 
         public override void PopulateItems() //(IEnumerable set, bool readOnly)
         {
-            var doc = DocumentManager.GetInstance().CurrentUIDocument.Document;
+            var doc = DocumentManager.Instance.CurrentUIDocument.Document;
 
             this.Items.Clear();
 
@@ -157,7 +157,7 @@ namespace Dynamo.Nodes
 
         protected override void LoadNode(XmlNode nodeElement)
         {
-            var doc = DocumentManager.GetInstance().CurrentUIDocument.Document;
+            var doc = DocumentManager.Instance.CurrentUIDocument.Document;
 
             int index = -1;
 
@@ -303,6 +303,37 @@ namespace Dynamo.Nodes
                 return result;
             }
         }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            NodeMigrationData migratedData = new NodeMigrationData(data.Document);
+            XmlElement oldNode = data.MigratedNodes.ElementAt(0);
+            string oldNodeId = MigrationManager.GetGuidFromXmlElement(oldNode);
+
+            //create the node itself
+            XmlElement dsRevitNode = MigrationManager.CreateFunctionNodeFrom(oldNode);
+            MigrationManager.SetFunctionSignature(dsRevitNode, "RevitNodes.dll", 
+                "FamilyInstance.ByPoint", "FamilyInstance.ByPoint@FamilySymbol,Point");
+
+            migratedData.AppendNode(dsRevitNode);
+            string dsRevitNodeId = MigrationManager.GetGuidFromXmlElement(dsRevitNode);
+
+            //create and reconnect the connecters
+            PortId oldInPort0 = new PortId(oldNodeId, 0, PortType.INPUT);
+            XmlElement connector0 = data.FindFirstConnector(oldInPort0);
+
+            PortId oldInPort1 = new PortId(oldNodeId, 1, PortType.INPUT);
+            XmlElement connector1 = data.FindFirstConnector(oldInPort1);
+
+            PortId newInPort0 = new PortId(dsRevitNodeId, 0, PortType.INPUT);
+            PortId newInPort1 = new PortId(dsRevitNodeId, 1, PortType.INPUT);
+
+            data.ReconnectToPort(connector0, newInPort1);
+            data.ReconnectToPort(connector1, newInPort0);
+
+            return migratedData;
+        }
     }
 
     [NodeName("Create Family Instance at Level")]
@@ -411,6 +442,43 @@ namespace Dynamo.Nodes
 
                 return result;
             }
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            NodeMigrationData migratedData = new NodeMigrationData(data.Document);
+            XmlElement oldNode = data.MigratedNodes.ElementAt(0);
+            string oldNodeId = MigrationManager.GetGuidFromXmlElement(oldNode);
+
+            //create the node itself
+            XmlElement dsRevitNode = MigrationManager.CreateFunctionNodeFrom(oldNode);
+             MigrationManager.SetFunctionSignature(dsRevitNode, "RevitNodes.dll", 
+                 "FamilyInstance.ByPointAndLevel", 
+                 "FamilyInstance.ByPointAndLevel@FamilySymbol,Point,Level");
+
+            migratedData.AppendNode(dsRevitNode);
+            string dsRevitNodeId = MigrationManager.GetGuidFromXmlElement(dsRevitNode);
+
+            //create and reconnect the connecters
+            PortId oldInPort0 = new PortId(oldNodeId, 0, PortType.INPUT);
+            XmlElement connector0 = data.FindFirstConnector(oldInPort0);
+
+            PortId oldInPort1 = new PortId(oldNodeId, 1, PortType.INPUT);
+            XmlElement connector1 = data.FindFirstConnector(oldInPort1);
+
+            PortId oldInPort2 = new PortId(oldNodeId, 2, PortType.INPUT);
+            XmlElement connector2 = data.FindFirstConnector(oldInPort2);
+
+            PortId newInPort0 = new PortId(dsRevitNodeId, 0, PortType.INPUT);
+            PortId newInPort1 = new PortId(dsRevitNodeId, 1, PortType.INPUT);
+            PortId newInPort2 = new PortId(dsRevitNodeId, 2, PortType.INPUT);
+
+            data.ReconnectToPort(connector0, newInPort1);
+            data.ReconnectToPort(connector1, newInPort0);
+            data.ReconnectToPort(connector2, newInPort2);
+
+            return migratedData;
         }
     }
 
@@ -594,6 +662,13 @@ namespace Dynamo.Nodes
                 return result;
             }
         }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll",
+                "FamilyInstance.Curves", "FamilyInstance.Curves");
+        }
     }
 
     [NodeName("Set Element Parameter")]
@@ -728,11 +803,11 @@ namespace Dynamo.Nodes
                     switch (p.Definition.ParameterType)
                 {
                     case ParameterType.Length:
-                        return Value.NewContainer(Units.Length.FromFeet(p.AsDouble(), dynSettings.Controller.UnitsManager));
+                        return Value.NewContainer(Units.Length.FromFeet(p.AsDouble()));
                     case ParameterType.Area:
-                        return Value.NewContainer(Units.Area.FromSquareFeet(p.AsDouble(), dynSettings.Controller.UnitsManager));
+                        return Value.NewContainer(Units.Area.FromSquareFeet(p.AsDouble()));
                     case ParameterType.Volume:
-                        return Value.NewContainer(Units.Volume.FromCubicFeet(p.AsDouble(), dynSettings.Controller.UnitsManager));
+                        return Value.NewContainer(Units.Volume.FromCubicFeet(p.AsDouble()));
                     default:
                         return Value.NewNumber(p.AsDouble());
                 }
@@ -789,7 +864,7 @@ namespace Dynamo.Nodes
                 FSharpList<Value> refPts = FSharpList<Value>.Empty;
                 foreach (var id in refPtIds)
                 {
-                    var pt = DocumentManager.GetInstance().CurrentUIDocument.Document.GetElement(id) as ReferencePoint;
+                    var pt = DocumentManager.Instance.CurrentUIDocument.Document.GetElement(id) as ReferencePoint;
                     refPts = FSharpList<Value>.Cons(Value.NewContainer(pt.Position), refPts);
                 }
                 return Value.NewList(Utils.SequenceToFSharpList(refPts.Reverse()));
@@ -823,6 +898,13 @@ namespace Dynamo.Nodes
             }
 
             throw new Exception("A location could not be found for the selected family instance(s).");
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll",
+                "FamilyInstance.Location", "FamilyInstance.Location");
         }
     }
 
@@ -858,13 +940,13 @@ namespace Dynamo.Nodes
                             switch (param.Definition.ParameterType)
                             {
                                 case ParameterType.Length:
-                                    outPuts[pd] = Value.NewContainer(Units.Length.FromFeet(param.AsDouble(), dynSettings.Controller.UnitsManager));
+                                    outPuts[pd] = Value.NewContainer(Units.Length.FromFeet(param.AsDouble()));
                                     break;
                                 case ParameterType.Area:
-                                    outPuts[pd] = Value.NewContainer(Units.Area.FromSquareFeet(param.AsDouble(), dynSettings.Controller.UnitsManager));
+                                    outPuts[pd] = Value.NewContainer(Units.Area.FromSquareFeet(param.AsDouble()));
                                     break;
                                 case ParameterType.Volume:
-                                    outPuts[pd] = Value.NewContainer(Units.Volume.FromCubicFeet(param.AsDouble(), dynSettings.Controller.UnitsManager));
+                                    outPuts[pd] = Value.NewContainer(Units.Volume.FromCubicFeet(param.AsDouble()));
                                     break;
                                 default:
                                     outPuts[pd] = Value.NewNumber(param.AsDouble());

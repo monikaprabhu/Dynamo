@@ -49,10 +49,11 @@ namespace Revit.Elements
                 InternalSetLevel(oldEle);
                 InternalSetElevation(elevation);
                 InternalSetName(name);
+                return;
             }
 
             //Phase 2- There was no existing element, create new
-            TransactionManager.GetInstance().EnsureInTransaction(Document);
+            TransactionManager.Instance.EnsureInTransaction(Document);
 
             Autodesk.Revit.DB.Level level;
 
@@ -68,7 +69,7 @@ namespace Revit.Elements
             InternalSetLevel(level);
             InternalSetName(name);
 
-            TransactionManager.GetInstance().TransactionTaskDone();
+            TransactionManager.Instance.TransactionTaskDone();
 
             ElementBinder.SetElementForTrace(this.InternalElementId);
 
@@ -100,9 +101,9 @@ namespace Revit.Elements
         /// <param name="elevation"></param>
         private void InternalSetElevation(double elevation)
         {
-            TransactionManager.GetInstance().EnsureInTransaction(Document);
+            TransactionManager.Instance.EnsureInTransaction(Document);
             this.InternalLevel.Elevation = elevation;
-            TransactionManager.GetInstance().TransactionTaskDone();
+            TransactionManager.Instance.TransactionTaskDone();
         }
 
         /// <summary>
@@ -113,9 +114,9 @@ namespace Revit.Elements
         {
             if (String.IsNullOrEmpty(name)) return;
 
-            TransactionManager.GetInstance().EnsureInTransaction(Document);
+            TransactionManager.Instance.EnsureInTransaction(Document);
             this.InternalLevel.Name = name;
-            TransactionManager.GetInstance().TransactionTaskDone();
+            TransactionManager.Instance.TransactionTaskDone();
         }
 
         #endregion
@@ -245,5 +246,9 @@ namespace Revit.Elements
 
         #endregion
 
+        public override string ToString()
+        {
+            return string.Format("Level: Name={0}, Elevation={1}", InternalLevel.Name, InternalLevel.Elevation);
+        }
     }
 }

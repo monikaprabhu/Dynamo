@@ -8,7 +8,9 @@ using Dynamo.Core;
 using Dynamo.Nodes;
 using Dynamo.Models;
 using Dynamo.Utilities;
+using DSCoreNodesUI;
 using NUnit.Framework;
+using System.Reflection;
 
 namespace Dynamo.Tests
 {
@@ -721,7 +723,7 @@ namespace Dynamo.Tests
             var model = dynSettings.Controller.DynamoModel;
             model.CreateNode(0, 0, "Boolean");
 
-            var boolNode = Controller.DynamoViewModel.Model.Nodes[0] as BoolSelector;
+            var boolNode = Controller.DynamoViewModel.Model.Nodes[0] as DSCoreNodesUI.BoolSelector;
             boolNode.Value = false;
             boolNode.X = 400; //To check if base Serialization method is being called
 
@@ -748,10 +750,7 @@ namespace Dynamo.Tests
         [Test]
         public void TestStringInput()
         {
-            var model = dynSettings.Controller.DynamoModel;
-            model.CreateNode(0, 0, "String");
-
-            var strNode = Controller.DynamoViewModel.Model.Nodes[0] as StringInput;
+            var strNode = new StringInput();
             strNode.Value = "Enter";
             strNode.X = 400; //To check if base Serialization method is being called
 
@@ -778,40 +777,39 @@ namespace Dynamo.Tests
         [Test]
         public void TestStringFileName()
         {
-            var model = dynSettings.Controller.DynamoModel;
-            model.CreateNode(0, 0, "Directory");
+            // "StringDirectory" class validates the directory name, so here we use one that we 
+            // know for sure exists so the validation process won't turn it into empty string.
+            var validFilePath = Assembly.GetExecutingAssembly().Location;
+            var validDirectoryName = Path.GetDirectoryName(validFilePath);
 
-            var strNode = Controller.DynamoViewModel.Model.Nodes[0] as StringDirectory;
-            strNode.Value = "Enter";
+            var strNode = new StringDirectory();
+            strNode.Value = validDirectoryName;
             strNode.X = 400; //To check if base Serialization method is being called
 
             //Assert initial values
             Assert.AreEqual(400, strNode.X);
-            Assert.AreEqual("Enter", strNode.Value);
+            Assert.AreEqual(validDirectoryName, strNode.Value);
 
             //Serialize node and then change values
             XmlDocument xmlDoc = new XmlDocument();
             XmlElement serializedEl = strNode.Serialize(xmlDoc, SaveContext.Undo);
             strNode.X = 250;
-            strNode.Value = "Exit";
+            strNode.Value = "Invalid file path";
 
             //Assert new changes
             Assert.AreEqual(250, strNode.X);
-            Assert.AreEqual("Exit", strNode.Value);
+            Assert.AreEqual("Invalid file path", strNode.Value);
 
             //Deserialize and aasert old values
             strNode.Deserialize(serializedEl, SaveContext.Undo);
             Assert.AreEqual(400, strNode.X);
-            Assert.AreEqual("Enter", strNode.Value);
+            Assert.AreEqual(validDirectoryName, strNode.Value);
         }
 
         [Test]
         public void TestVariableInput()
         {
-            var model = dynSettings.Controller.DynamoModel;
-            model.CreateNode(0, 0, "List");
-
-            var listNode = Controller.DynamoViewModel.Model.Nodes[0] as NewList;
+            var listNode = new Dynamo.Nodes.NewList();
             listNode.X = 400; //To check if base Serialization method is being called
             listNode.InPortData.Add(new PortData("index 1", "Item Index #1", typeof(object)));
             listNode.InPortData.Add(new PortData("index 2", "Item Index #2", typeof(object)));
@@ -840,10 +838,7 @@ namespace Dynamo.Tests
         [Test]
         public void TestSublists()
         {
-            var model = dynSettings.Controller.DynamoModel;
-            model.CreateNode(0, 0, "Build Sublists");
-
-            var strNode = Controller.DynamoViewModel.Model.Nodes[0] as Sublists;
+            var strNode = new Sublists();
             strNode.Value = "Enter";
             strNode.X = 400; //To check if base Serialization method is being called
 
@@ -922,7 +917,7 @@ namespace Dynamo.Tests
 
             //Assert initial values
             Assert.AreEqual(534.75, graphNode.X);
-            Assert.AreEqual("07e6b150-d902-4abb-8103-79193552eee7", graphNode.Symbol);
+            Assert.AreEqual("07e6b150-d902-4abb-8103-79193552eee7", graphNode.Definition.FunctionId.ToString());
             Assert.AreEqual("GraphFunction", graphNode.NickName);
             Assert.AreEqual(4, graphNode.InPortData.Count);
             Assert.AreEqual("y = f(x)", graphNode.InPortData[3].NickName);
@@ -945,6 +940,57 @@ namespace Dynamo.Tests
             Assert.AreEqual(4, graphNode.InPortData.Count);
             Assert.AreEqual("GraphFunction", graphNode.NickName);
             Assert.AreEqual("y = f(x)", graphNode.InPortData[3].NickName);
+        }
+
+        [Test]
+        public void TestDummyNodeInternals00()
+        {
+            var model = Controller.DynamoModel;
+            var folder = Path.Combine(GetTestDirectory(), @"core\migration\");
+            model.Open(Path.Combine(folder, "DummyNodeSample.dyn"));
+
+            var workspace = Controller.DynamoModel.CurrentWorkspace;
+            var dummyNode = workspace.NodeFromWorkspace<DSCoreNodesUI.DummyNode>(
+                Guid.Parse("37bffbb9-3438-4c6c-81d6-7b41b5fb5b87"));
+
+            Assert.IsNotNull(dummyNode);
+
+            // Ensure all properties are loaded from file.
+            Assert.AreEqual("Point.ByLuck", dummyNode.LegacyNodeName);
+            Assert.AreEqual(3, dummyNode.InputCount);
+            Assert.AreEqual(2, dummyNode.OutputCount);
+
+            // Ensure all properties updated data members accordingly.
+            Assert.AreEqual("Point.ByLuck", dummyNode.NickName);
+            Assert.AreEqual(3, dummyNode.InPorts.Count);
+            Assert.AreEqual(2, dummyNode.OutPorts.Count);
+        }
+
+        [Test]
+        public void TestDummyNodeInternals01()
+        {
+            var model = Controller.DynamoModel;
+            var folder = Path.Combine(GetTestDirectory(), @"core\migration\");
+            model.Open(Path.Combine(folder, "DummyNodeSample.dyn"));
+
+            var workspace = Controller.DynamoModel.CurrentWorkspace;
+            var dummyNode = workspace.NodeFromWorkspace<DSCoreNodesUI.DummyNode>(
+                Guid.Parse("37bffbb9-3438-4c6c-81d6-7b41b5fb5b87"));
+
+            Assert.IsNotNull(dummyNode);
+            Assert.AreEqual(3, dummyNode.InPorts.Count);
+            Assert.AreEqual(2, dummyNode.OutPorts.Count);
+
+            var xmlDocument = new XmlDocument();
+            var element = dummyNode.Serialize(xmlDocument, SaveContext.Undo);
+
+            // Deserialize more than once should not cause ports to accumulate.
+            dummyNode.Deserialize(element, SaveContext.Undo);
+            dummyNode.Deserialize(element, SaveContext.Undo);
+            dummyNode.Deserialize(element, SaveContext.Undo);
+
+            Assert.AreEqual(3, dummyNode.InPorts.Count);
+            Assert.AreEqual(2, dummyNode.OutPorts.Count);
         }
     }
 }

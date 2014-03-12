@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
@@ -8,26 +10,24 @@ using Dynamo.Utilities;
 using Microsoft.FSharp.Collections;
 using ProtoCore.AST.AssociativeAST;
 
+#endregion
+
 namespace Dynamo.Nodes
 {
-    [NodeDescription("A node with customized internal functionality.")]
+    /// <summary>
+    ///     DesignScript Custom Node instance.
+    /// </summary>
+    [NodeName("Custom Node")]
+    [NodeDescription("Instance of a Custom Node")]
     [IsInteractive(false)]
+    [NodeSearchable(false)]
+    [IsMetaNode]
     public partial class Function : NodeWithOneOutput
     {
-        protected internal Function(
-            IEnumerable<string> inputs, IEnumerable<string> outputs, CustomNodeDefinition def)
+        protected internal Function(CustomNodeDefinition def)
         {
-            _def = def;
-
-            Symbol = def.FunctionId.ToString();
-
-            //Set inputs and output
-            SetInputs(inputs);
-            foreach (var output in outputs)
-                OutPortData.Add(new PortData(output, "function output", typeof(object)));
-
-            RegisterAllPorts();
-
+            Definition = def;
+            ResyncWithDefinition();
             ArgumentLacing = LacingStrategy.Disabled;
         }
 
@@ -58,79 +58,54 @@ namespace Dynamo.Nodes
             }
         }
 
-        public string Symbol { get; protected internal set; }
+        [Obsolete("Use Definition.FunctionId.ToString()")]
+        public string Symbol
+        {
+            get { return Definition.FunctionId.ToString(); }
+        }
 
         public new string Category
         {
             get
             {
-
-                if (
-                    dynSettings.Controller.CustomNodeManager.NodeInfos.ContainsKey(
-                        Definition.FunctionId))
-                    return
-                        dynSettings.Controller.CustomNodeManager.NodeInfos[
-                            this.Definition.FunctionId].Category;
-                else
-                {
-                    return "Custom Nodes";
-                }
+                if (dynSettings.Controller.CustomNodeManager.NodeInfos.ContainsKey(Definition.FunctionId))
+                    return dynSettings.Controller.CustomNodeManager.NodeInfos[Definition.FunctionId].Category;
+                return "Custom Nodes";
             }
         }
 
-        private CustomNodeDefinition _def;
 
-        public CustomNodeDefinition Definition
+        /// <summary>
+        /// </summary>
+        public CustomNodeDefinition Definition { get; set; }
+
+        /// <summary>
+        ///     Updates this Custom Node's data to match its Definition.
+        /// </summary>
+        public void ResyncWithDefinition()
         {
-            get { return _def; }
-            internal set
+            DisableReporting();
+
+            if (Definition.Parameters != null)
             {
-                _def = value;
-                if (value != null)
-                    Symbol = value.FunctionId.ToString();
+                InPortData.Clear();
+                foreach (string arg in Definition.Parameters)
+                    InPortData.Add(new PortData(arg, "parameter", typeof(object)));
             }
-        }
 
-        protected override internal bool isDirty
-        {
-            get 
-            { 
-                return base.isDirty ? true : RequiresRecalc;
-            }
-        }
-
-        public override bool RequiresRecalc
-        {
-            get
+            OutPortData.Clear();
+            if (Definition.ReturnKeys != null && Definition.ReturnKeys.Any())
             {
-                //Do we already know we're dirty?
-                bool baseDirty = base.RequiresRecalc;
-                if (baseDirty)
-                    return true;
-
-                return Definition.RequiresRecalc
-                       || Definition.Dependencies.Any(x => x.RequiresRecalc);
+                foreach (string key in Definition.ReturnKeys)
+                    OutPortData.Add(new PortData(key, "return value", typeof(object)));
             }
-            set
-            {
-                //Set the base value.
-                base.RequiresRecalc = value;
-                //If we're clean, then notify all internals.
-                if (!value)
-                {
-                    if (dynSettings.Controller.Running)
-                        dynSettings.FunctionWasEvaluated.Add(Definition);
-                    else
-                    {
-                        //Recursion detection start.
-                        Definition.RequiresRecalc = false;
+            else
+                OutPortData.Add(new PortData("", "return value", typeof(object)));
 
-                        //TODO: move this to RequiresRecalc property of CustomNodeDefinition?
-                        foreach (var dep in Definition.Dependencies)
-                            dep.RequiresRecalc = false;
-                    }
-                }
-            }
+            RegisterAllPorts();
+            NickName = Definition.DisplayName;
+
+            EnableReporting();
         }
 
         protected override InputNode Compile(IEnumerable<string> portNames)
@@ -139,22 +114,19 @@ namespace Dynamo.Nodes
         }
 
         /// <summary>
-        /// Sets the inputs of this function.
+        ///     Sets the inputs of this function.
         /// </summary>
         /// <param name="inputs"></param>
+        [Obsolete]
         public void SetInputs(IEnumerable<string> inputs)
         {
             int i = 0;
             foreach (string input in inputs)
             {
                 if (InPortData.Count > i)
-                {
                     InPortData[i].NickName = input;
-                }
                 else
-                {
                     InPortData.Add(new PortData(input, "Input #" + (i + 1), typeof(object)));
-                }
 
                 i++;
             }
@@ -169,19 +141,16 @@ namespace Dynamo.Nodes
             }
         }
 
+        [Obsolete]
         public void SetOutputs(IEnumerable<string> outputs)
         {
             int i = 0;
             foreach (string output in outputs)
             {
                 if (OutPortData.Count > i)
-                {
                     OutPortData[i].NickName = output;
-                }
                 else
-                {
                     OutPortData.Add(new PortData(output, "Output #" + (i + 1), typeof(object)));
-                }
 
                 i++;
             }
@@ -195,13 +164,12 @@ namespace Dynamo.Nodes
             }
         }
 
-        protected override void SaveNode(
-            XmlDocument xmlDoc, XmlElement nodeElement, SaveContext context)
+        protected override void SaveNode(XmlDocument xmlDoc, XmlElement nodeElement, SaveContext context)
         {
             //Debug.WriteLine(pd.Object.GetType().ToString());
             XmlElement outEl = xmlDoc.CreateElement("ID");
 
-            outEl.SetAttribute("value", Symbol);
+            outEl.SetAttribute("value", Definition.FunctionId.ToString());
             nodeElement.AppendChild(outEl);
 
             outEl = xmlDoc.CreateElement("Name");
@@ -213,18 +181,18 @@ namespace Dynamo.Nodes
             nodeElement.AppendChild(outEl);
 
             outEl = xmlDoc.CreateElement("Inputs");
-            foreach (var input in InPortData.Select(x => x.NickName))
+            foreach (string input in InPortData.Select(x => x.NickName))
             {
-                var inputEl = xmlDoc.CreateElement("Input");
+                XmlElement inputEl = xmlDoc.CreateElement("Input");
                 inputEl.SetAttribute("value", input);
                 outEl.AppendChild(inputEl);
             }
             nodeElement.AppendChild(outEl);
 
             outEl = xmlDoc.CreateElement("Outputs");
-            foreach (var output in OutPortData.Select(x => x.NickName))
+            foreach (string output in OutPortData.Select(x => x.NickName))
             {
-                var outputEl = xmlDoc.CreateElement("Output");
+                XmlElement outputEl = xmlDoc.CreateElement("Output");
                 outputEl.SetAttribute("value", output);
                 outEl.AppendChild(outputEl);
             }
@@ -233,77 +201,75 @@ namespace Dynamo.Nodes
 
         protected override void LoadNode(XmlNode nodeElement)
         {
-            foreach (XmlNode subNode in nodeElement.ChildNodes)
+            List<XmlNode> childNodes = nodeElement.ChildNodes.Cast<XmlNode>().ToList();
+
+            XmlNode nameNode = childNodes.LastOrDefault(subNode => subNode.Name.Equals("Name"));
+            if (nameNode != null && nameNode.Attributes != null)
+                NickName = nameNode.Attributes[0].Value;
+
+            XmlNode idNode = childNodes.LastOrDefault(subNode => subNode.Name.Equals("ID"));
+            if (idNode != null && idNode.Attributes != null)
             {
-                if (subNode.Name.Equals("Name"))
+                string id = idNode.Attributes[0].Value;
+                Guid funcId;
+                if (!Guid.TryParse(id, out funcId) && nodeElement.Attributes != null)
+                    funcId = GuidUtility.Create(GuidUtility.UrlNamespace, nodeElement.Attributes["nickname"].Value);
+                if (!VerifyFuncId(ref funcId))
                 {
-                    NickName = subNode.Attributes[0].Value;
+                    LoadProxyCustomNode(funcId);
+                    return;
                 }
+                Definition = dynSettings.Controller.CustomNodeManager.GetFunctionDefinition(funcId);
             }
 
-            foreach (XmlNode subNode in nodeElement.ChildNodes)
-            {
-                if (subNode.Name.Equals("ID"))
-                {
-                    Symbol = subNode.Attributes[0].Value;
-                    Guid funcId;
-                    if (!VerifySymbol(out funcId))
-                    {
-
-                        LoadProxyCustomNode(funcId);
-                        return;
-                    }
-                }
-            }
-
-            foreach (XmlNode subNode in nodeElement.ChildNodes)
+            foreach (XmlNode subNode in childNodes)
             {
                 if (subNode.Name.Equals("Outputs"))
                 {
-                    int i = 0;
-                    foreach (XmlNode outputNode in subNode.ChildNodes)
+                    var data =
+                        subNode.ChildNodes.Cast<XmlNode>()
+                               .Select(
+                                   (outputNode, i) =>
+                                       new
+                                       {
+                                           data = new PortData(outputNode.Attributes[0].Value, "Output #" + (i + 1)),
+                                           idx = i
+                                       });
+
+                    foreach (var dataAndIdx in data)
                     {
-                        var data = new PortData(
-                            outputNode.Attributes[0].Value, "Output #" + (i + 1), typeof(object));
-
-                        if (OutPortData.Count > i)
-                        {
-                            OutPortData[i] = data;
-                        }
+                        if (OutPortData.Count > dataAndIdx.idx)
+                            OutPortData[dataAndIdx.idx] = dataAndIdx.data;
                         else
-                        {
-                            OutPortData.Add(data);
-                        }
-
-                        i++;
+                            OutPortData.Add(dataAndIdx.data);
                     }
                 }
                 else if (subNode.Name.Equals("Inputs"))
                 {
-                    int i = 0;
-                    foreach (XmlNode inputNode in subNode.ChildNodes)
+                    var data =
+                        subNode.ChildNodes.Cast<XmlNode>()
+                               .Select(
+                                   (inputNode, i) =>
+                                       new
+                                       {
+                                           data = new PortData(inputNode.Attributes[0].Value, "Input #" + (i + 1)),
+                                           idx = i
+                                       });
+
+                    foreach (var dataAndIdx in data)
                     {
-                        var data = new PortData(
-                            inputNode.Attributes[0].Value, "Input #" + (i + 1), typeof(object));
-
-                        if (InPortData.Count > i)
-                        {
-                            InPortData[i] = data;
-                        }
+                        if (InPortData.Count > dataAndIdx.idx)
+                            InPortData[dataAndIdx.idx] = dataAndIdx.data;
                         else
-                        {
-                            InPortData.Add(data);
-                        }
-
-                        i++;
+                            InPortData.Add(dataAndIdx.data);
                     }
                 }
+
                     #region Legacy output support
 
                 else if (subNode.Name.Equals("Output"))
                 {
-                    var data = new PortData(
-                        subNode.Attributes[0].Value, "function output", typeof(object));
+                    var data = new PortData(subNode.Attributes[0].Value, "function output", typeof(object));
 
                     if (OutPortData.Any())
                         OutPortData[0] = data;
@@ -321,22 +287,114 @@ namespace Dynamo.Nodes
             //before this was the case, we need to ensure it here.
             ArgumentLacing = LacingStrategy.Disabled;
 
-            // we've found a custom node, we need to attempt to load its guid.  
-            // if it doesn't exist (i.e. its a legacy node), we need to assign it one
-            // deterministically
-            Guid funId;
-            try
+            //if (Definition != null)
+            //    ResyncWithDefinition();
+        }
+
+        private bool VerifyFuncId(ref Guid funcId)
+        {
+            if (funcId == null)
+                return false;
+
+            // if the dyf does not exist on the search path...
+            if (dynSettings.Controller.CustomNodeManager.Contains(funcId))
+                return true;
+
+            CustomNodeManager manager = dynSettings.Controller.CustomNodeManager;
+
+            // if there is a node with this name, use it instead
+            if (manager.Contains(NickName))
             {
-                funId = Guid.Parse(Symbol);
-            }
-            catch (FormatException)
-            {
-                funId = GuidUtility.Create(
-                    GuidUtility.UrlNamespace, nodeElement.Attributes["nickname"].Value);
-                Symbol = funId.ToString();
+                funcId = manager.GetGuidFromName(NickName);
+                return true;
             }
 
-            Definition = dynSettings.Controller.CustomNodeManager.GetFunctionDefinition(funId);
+            return false;
+        }
+
+        private void LoadProxyCustomNode(Guid funcId)
+        {
+            var proxyDef = new CustomNodeDefinition(funcId)
+            {
+                WorkspaceModel = new CustomNodeWorkspaceModel(NickName, "Custom Nodes") { FileName = null }
+            };
+
+            string userMsg = "Failed to load custom node: " + NickName + ".  Replacing with proxy custom node.";
+
+            DynamoLogger.Instance.Log(userMsg);
+
+            // tell custom node loader, but don't provide path, forcing user to resave explicitly
+            dynSettings.Controller.CustomNodeManager.SetFunctionDefinition(funcId, proxyDef);
+            Definition = dynSettings.Controller.CustomNodeManager.GetFunctionDefinition(funcId);
+
+            ArgumentLacing = LacingStrategy.Disabled;
+            ResyncWithDefinition();
+            RegisterAllPorts();
+            State = ElementState.Error;
+        }
+
+        public override void Evaluate(FSharpList<FScheme.Value> args, Dictionary<PortData, FScheme.Value> outPuts)
+        {
+            if (OutPortData.Count > 1)
+            {
+                var query = (Evaluate(args) as FScheme.Value.List).Item.Zip(
+                    OutPortData,
+                    (value, data) => new { value, data });
+
+                foreach (var result in query)
+                    outPuts[result.data] = result.value;
+            }
+            else
+                base.Evaluate(args, outPuts);
+        }
+
+        public override FScheme.Value Evaluate(FSharpList<FScheme.Value> args)
+        {
+            //return ((FScheme.Value.Function)Controller.FSchemeEnvironment.LookupSymbol(Symbol))
+            //    .Item.Invoke(args);
+
+            throw new NotImplementedException("FSchemeEnvironment has been removed.");
+        }
+
+        internal override IEnumerable<AssociativeNode> BuildAst(List<AssociativeNode> inputAstNodes)
+        {
+            AssociativeNode functionCall = AstFactory.BuildFunctionCall(Definition.FunctionName, inputAstNodes);
+
+            var resultAst = new List<AssociativeNode>
+            {
+                AstFactory.BuildAssignment(AstIdentifierForPreview, functionCall)
+            };
+
+            if (OutPortData.Count == 1)
+            {
+                // assign the entire result to the only output port
+                resultAst.Add(AstFactory.BuildAssignment(GetAstIdentifierForOutputIndex(0), AstIdentifierForPreview));
+            }
+            else
+            {
+                /* previewId = customNodeFunc(arg0, arg1 ...);
+                 * outId0 = previewId[key0];
+                 * outId1 = previewId[key1];
+                 * ...
+                 */
+
+                // indexers for each output
+                IEnumerable<AssociativeNode> indexers = Definition.ReturnKeys != null
+                    ? Definition.ReturnKeys.Select(AstFactory.BuildStringNode) as IEnumerable<AssociativeNode>
+                    : Enumerable.Range(0, OutPortData.Count).Select(AstFactory.BuildIntNode);
+
+                // for each output, pull the output from the result
+                // based on the associated return key and assign to
+                // corresponding output identifier
+                resultAst.AddRange(
+                    indexers.Select(
+                        (rtnKey, index) =>
+                            AstFactory.BuildAssignment(
+                                GetAstIdentifierForOutputIndex(index),
+                                AstFactory.BuildIdentifier(AstIdentifierForPreview.Name, rtnKey))));
+            }
+
+            return resultAst;
         }
 
         #region Serialization/Deserialization methods
@@ -346,22 +404,22 @@ namespace Dynamo.Nodes
             base.SerializeCore(element, context); //Base implementation must be called
             if (context == SaveContext.Undo)
             {
-                XmlElementHelper helper = new XmlElementHelper(element);
-                helper.SetAttribute("functionId", Symbol);
+                var helper = new XmlElementHelper(element);
+                helper.SetAttribute("functionId", Definition.FunctionId.ToString());
                 helper.SetAttribute("functionName", NickName);
                 helper.SetAttribute("functionDesc", Description);
 
                 XmlDocument xmlDoc = element.OwnerDocument;
-                foreach (var input in InPortData.Select(x => x.NickName))
+                foreach (string input in InPortData.Select(x => x.NickName))
                 {
-                    var inputEl = xmlDoc.CreateElement("functionInput");
+                    XmlElement inputEl = xmlDoc.CreateElement("functionInput");
                     inputEl.SetAttribute("inputValue", input);
                     element.AppendChild(inputEl);
                 }
 
-                foreach (var input in OutPortData.Select(x => x.NickName))
+                foreach (string input in OutPortData.Select(x => x.NickName))
                 {
-                    var outputEl = xmlDoc.CreateElement("functionOutput");
+                    XmlElement outputEl = xmlDoc.CreateElement("functionOutput");
                     outputEl.SetAttribute("outputValue", input);
                     element.AppendChild(outputEl);
                 }
@@ -374,39 +432,58 @@ namespace Dynamo.Nodes
 
             if (context == SaveContext.Undo)
             {
-                XmlElementHelper helper = new XmlElementHelper(element);
+                var helper = new XmlElementHelper(element);
                 NickName = helper.ReadString("functionName");
 
-                Symbol = helper.ReadString("functionId");
                 Guid funcId;
-                if (!VerifySymbol(out funcId))
+                if (!Guid.TryParse(helper.ReadString("functionId"), out funcId))
+                    funcId = GuidUtility.Create(GuidUtility.UrlNamespace, NickName);
+
+                if (!VerifyFuncId(ref funcId))
                 {
                     LoadProxyCustomNode(funcId);
                     return;
                 }
+
+                Definition = dynSettings.Controller.CustomNodeManager.GetFunctionDefinition(funcId);
+
                 XmlNodeList inNodes = element.SelectNodes("functionInput");
                 XmlNodeList outNodes = element.SelectNodes("functionOutput");
-                int i = 0;
-                foreach (XmlNode inputNode in inNodes)
+
+                var inData =
+                    inNodes.Cast<XmlNode>()
+                        .Select(
+                            (inputNode, i) =>
+                                new
+                                {
+                                    data = new PortData(inputNode.Attributes[0].Value, "Input #" + (i + 1)),
+                                    idx = i
+                                });
+
+                foreach (var dataAndIdx in inData)
                 {
-                    string name = inputNode.Attributes[0].Value;
-                    var data = new PortData(name, "Input #" + (i + 1), typeof(object));
-                    if (InPortData.Count > i)
-                        InPortData[i] = data;
+                    if (InPortData.Count > dataAndIdx.idx)
+                        InPortData[dataAndIdx.idx] = dataAndIdx.data;
                     else
-                        InPortData.Add(data);
-                    i++;
+                        InPortData.Add(dataAndIdx.data);
                 }
-                i = 0;
-                foreach (XmlNode outputNode in outNodes)
+
+                var outData =
+                    outNodes.Cast<XmlNode>()
+                        .Select(
+                            (outputNode, i) =>
+                                new
+                                {
+                                    data = new PortData(outputNode.Attributes[0].Value, "Output #" + (i + 1)),
+                                    idx = i
+                                });
+
+                foreach (var dataAndIdx in outData)
                 {
-                    string name = outputNode.Attributes[0].Value;
-                    var data = new PortData(name, "Output #" + (i + 1), typeof(object));
-                    if (OutPortData.Count > i)
-                        OutPortData[i] = data;
+                    if (OutPortData.Count > dataAndIdx.idx)
+                        OutPortData[dataAndIdx.idx] = dataAndIdx.data;
                     else
-                        OutPortData.Add(data);
-                    i++;
+                        OutPortData.Add(dataAndIdx.data);
                 }
 
                 //Added it the same way as LoadNode. But unsure of when 'Output' ChildNodes will
@@ -414,119 +491,26 @@ namespace Dynamo.Nodes
 
                 #region Legacy output support
 
-                foreach (XmlNode subNode in element.ChildNodes)
+                foreach (var portData in 
+                    from XmlNode subNode in element.ChildNodes
+                    where subNode.Name.Equals("Output")
+                    select new PortData(subNode.Attributes[0].Value, "function output"))
                 {
-                    if (subNode.Name.Equals("Output"))
-                    {
-                        var data = new PortData(
-                            subNode.Attributes[0].Value, "function output", typeof(object));
-
-                        if (OutPortData.Any())
-                            OutPortData[0] = data;
-                        else
-                            OutPortData.Add(data);
-                    }
+                    if (OutPortData.Any())
+                        OutPortData[0] = portData;
+                    else
+                        OutPortData.Add(portData);
                 }
 
                 #endregion
 
-
                 RegisterAllPorts();
 
-                Guid funId;
-                try
-                {
-                    funId = Guid.Parse(Symbol);
-                }
-                catch
-                {
-                    funId = GuidUtility.Create(GuidUtility.UrlNamespace, NickName);
-                    Symbol = funId.ToString();
-                }
-
-                Definition = dynSettings.Controller.CustomNodeManager.GetFunctionDefinition(funId);
                 Description = helper.ReadString("functionDesc");
             }
         }
 
         #endregion
-
-        private bool VerifySymbol(out Guid funcId)
-        {
-            Guid.TryParse(Symbol, out funcId);
-
-            // if the dyf does not exist on the search path...
-            if (dynSettings.Controller.CustomNodeManager.Contains(funcId))
-                return true;
-
-            var manager = dynSettings.Controller.CustomNodeManager;
-
-            // if there is a node with this name, use it instead
-            if (manager.Contains(NickName))
-            {
-                var guid = manager.GetGuidFromName(NickName);
-                Symbol = guid.ToString();
-                return true;
-            }
-
-            return false;
-        }
-
-        private void LoadProxyCustomNode(Guid funcId)
-        {
-            var proxyDef = new CustomNodeDefinition(funcId)
-            {
-                WorkspaceModel =
-                    new CustomNodeWorkspaceModel(
-                        NickName, "Custom Nodes")
-                    {
-                        FileName = null
-                    }
-            };
-
-            SetInputs(new List<string>());
-            SetOutputs(new List<string>());
-            RegisterAllPorts();
-            State = ElementState.Error;
-
-            var userMsg = "Failed to load custom node: " + NickName +
-                          ".  Replacing with proxy custom node.";
-
-            DynamoLogger.Instance.Log(userMsg);
-
-            // tell custom node loader, but don't provide path, forcing user to resave explicitly
-            dynSettings.Controller.CustomNodeManager.SetFunctionDefinition(funcId, proxyDef);
-            Definition = dynSettings.Controller.CustomNodeManager.GetFunctionDefinition(funcId);
-            ArgumentLacing = LacingStrategy.Disabled;
-        }
-
-        public override void Evaluate(
-            FSharpList<FScheme.Value> args, Dictionary<PortData, FScheme.Value> outPuts)
-        {
-            if (OutPortData.Count > 1)
-            {
-                var query = (Evaluate(args) as FScheme.Value.List).Item.Zip(
-                    OutPortData, (value, data) => new { value, data });
-
-                foreach (var result in query)
-                    outPuts[result.data] = result.value;
-            }
-            else
-                base.Evaluate(args, outPuts);
-        }
-
-        public override FScheme.Value Evaluate(FSharpList<FScheme.Value> args)
-        {
-            return ((FScheme.Value.Function)Controller.FSchemeEnvironment.LookupSymbol(Symbol))
-                .Item.Invoke(args);
-        }
-
-        internal override IEnumerable<AssociativeNode> BuildAst(List<AssociativeNode> inputAstNodes)
-        {
-            var rhs = AstFactory.BuildFunctionCall(Definition.FunctionName, inputAstNodes);
-            var funcCall = AstFactory.BuildAssignment(this.AstIdentifierForPreview, rhs);
-            return new AssociativeNode[] { funcCall };
-        }
     }
 
     [NodeName("Input")]
@@ -537,6 +521,8 @@ namespace Dynamo.Nodes
     [IsDesignScriptCompatible]
     public partial class Symbol : NodeModel
     {
+        private string inputSymbol = "";
+
         public Symbol()
         {
             OutPortData.Add(new PortData("", "Symbol", typeof(object)));
@@ -546,20 +532,12 @@ namespace Dynamo.Nodes
             ArgumentLacing = LacingStrategy.Disabled;
         }
 
-        public override bool RequiresRecalc
-        {
-            get { return false; }
-            set { }
-        }
-
-        private string _inputSymbol = "";
-
         public string InputSymbol
         {
-            get { return _inputSymbol; }
+            get { return inputSymbol; }
             set
             {
-                _inputSymbol = value;
+                inputSymbol = value;
                 ReportModification();
                 RaisePropertyChanged("InputSymbol");
             }
@@ -569,12 +547,10 @@ namespace Dynamo.Nodes
         {
             if (string.IsNullOrEmpty(InputSymbol))
                 return AstIdentifierForPreview;
-            else
-                return AstFactory.BuildIdentifier(InputSymbol);
+            return AstFactory.BuildIdentifier(InputSymbol);
         }
 
-        protected internal override INode Build(
-            Dictionary<NodeModel, Dictionary<int, INode>> preBuilt, int outPort)
+        protected internal override INode Build(Dictionary<NodeModel, Dictionary<int, INode>> preBuilt, int outPort)
         {
             Dictionary<int, INode> result;
             if (!preBuilt.TryGetValue(this, out result))
@@ -586,8 +562,7 @@ namespace Dynamo.Nodes
             return result[outPort];
         }
 
-        protected override void SaveNode(
-            XmlDocument xmlDoc, XmlElement nodeElement, SaveContext context)
+        protected override void SaveNode(XmlDocument xmlDoc, XmlElement nodeElement, SaveContext context)
         {
             //Debug.WriteLine(pd.Object.GetType().ToString());
             XmlElement outEl = xmlDoc.CreateElement("Symbol");
@@ -597,16 +572,29 @@ namespace Dynamo.Nodes
 
         protected override void LoadNode(XmlNode nodeElement)
         {
-            foreach (XmlNode subNode in nodeElement.ChildNodes)
+            foreach (var subNode in
+                nodeElement.ChildNodes.Cast<XmlNode>()
+                    .Where(subNode => subNode.Name == "Symbol"))
             {
-                if (subNode.Name == "Symbol")
-                {
-                    InputSymbol = subNode.Attributes[0].Value;
-                }
+                InputSymbol = subNode.Attributes[0].Value;
             }
 
             ArgumentLacing = LacingStrategy.Disabled;
         }
+
+        /*
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            NodeMigrationData migrationData = new NodeMigrationData(data.Document);
+
+            XmlElement oldNode = data.MigratedNodes.ElementAt(0);
+            XmlElement dummyNode = MigrationManager.CreateDummyNode(oldNode, 0, 1);
+            migrationData.AppendNode(dummyNode);
+
+            return migrationData;
+        }
+        */
     }
 
     [NodeName("Output")]
@@ -616,6 +604,8 @@ namespace Dynamo.Nodes
     [IsDesignScriptCompatible]
     public partial class Output : NodeModel
     {
+        private string symbol = "";
+
         public Output()
         {
             InPortData.Add(new PortData("", "", typeof(object)));
@@ -625,20 +615,12 @@ namespace Dynamo.Nodes
             ArgumentLacing = LacingStrategy.Disabled;
         }
 
-        public override bool RequiresRecalc
-        {
-            get { return false; }
-            set { }
-        }
-
-        private string _symbol = "";
-
         public string Symbol
         {
-            get { return _symbol; }
+            get { return symbol; }
             set
             {
-                _symbol = value;
+                symbol = value;
                 ReportModification();
                 RaisePropertyChanged("Symbol");
             }
@@ -660,11 +642,10 @@ namespace Dynamo.Nodes
             else
                 assignment = AstFactory.BuildAssignment(AstIdentifierForPreview, inputAstNodes[0]);
 
-            return new AssociativeNode[] { assignment };
+            return new[] { assignment };
         }
 
-        protected override void SaveNode(
-            XmlDocument xmlDoc, XmlElement nodeElement, SaveContext context)
+        protected override void SaveNode(XmlDocument xmlDoc, XmlElement nodeElement, SaveContext context)
         {
             //Debug.WriteLine(pd.Object.GetType().ToString());
             XmlElement outEl = xmlDoc.CreateElement("Symbol");
@@ -674,15 +655,28 @@ namespace Dynamo.Nodes
 
         protected override void LoadNode(XmlNode nodeElement)
         {
-            foreach (XmlNode subNode in nodeElement.ChildNodes)
+            foreach (var subNode in 
+                nodeElement.ChildNodes.Cast<XmlNode>()
+                    .Where(subNode => subNode.Name == "Symbol"))
             {
-                if (subNode.Name == "Symbol")
-                {
-                    Symbol = subNode.Attributes[0].Value;
-                }
+                Symbol = subNode.Attributes[0].Value;
             }
 
             ArgumentLacing = LacingStrategy.Disabled;
         }
+
+        /*
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            NodeMigrationData migrationData = new NodeMigrationData(data.Document);
+
+            XmlElement oldNode = data.MigratedNodes.ElementAt(0);
+            XmlElement dummyNode = MigrationManager.CreateDummyNode(oldNode, 1, 0);
+            migrationData.AppendNode(dummyNode);
+
+            return migrationData;
+        }
+        */
     }
 }

@@ -30,7 +30,7 @@ namespace Dynamo.Nodes
             Items.Clear();
 
             //load all the currently loaded types into the combo list
-            var fec = new FilteredElementCollector(DocumentManager.GetInstance().CurrentUIDocument.Document);
+            var fec = new FilteredElementCollector(DocumentManager.Instance.CurrentUIDocument.Document);
             fec.OfClass(typeof(Family));
             foreach (Family f in fec.ToElements())
             {
@@ -51,6 +51,15 @@ namespace Dynamo.Nodes
             return FScheme.Value.NewContainer(Items[SelectedIndex].Item);
         }
 
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            NodeMigrationData migrationData = new NodeMigrationData(data.Document);
+            migrationData.AppendNode(MigrationManager.CloneAndChangeName(
+                data.MigratedNodes.ElementAt(0), "DSRevitNodesUI.FamilyTypes", "Family Type"));
+
+            return migrationData;
+        }
     }
 
     [NodeName("Set Family Type Parameter")]
@@ -308,7 +317,7 @@ namespace Dynamo.Nodes
         public override FScheme.Value Evaluate(FSharpList<FScheme.Value> args)
         {
             var symbol = (FamilySymbol)((FScheme.Value.Container)args[0]).Item;
-            var collector = new FilteredElementCollector(DocumentManager.GetInstance().CurrentUIDocument.Document);
+            var collector = new FilteredElementCollector(DocumentManager.Instance.CurrentUIDocument.Document);
             collector.OfClass(typeof(FamilyInstance));
             var fis = collector.ToElements().Where(x => x is FamilyInstance).Cast<FamilyInstance>().Where(x => x.Symbol.Name == symbol.Name);
             var results = fis.Aggregate(FSharpList<FScheme.Value>.Empty,

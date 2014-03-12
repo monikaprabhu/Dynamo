@@ -1,8 +1,11 @@
 ﻿using Dynamo.Models;
+using Dynamo.Utilities;
 using Microsoft.FSharp.Collections;
 
 using Value = Dynamo.FScheme.Value;
 using System.Threading;
+using System.Linq;
+using System.Xml;
 
 namespace Dynamo.Nodes
 {
@@ -17,12 +20,6 @@ namespace Dynamo.Nodes
             OutPortData.Add(new PortData("", "Success", typeof(Value.Number)));
 
             RegisterAllPorts();
-        }
-
-        public override bool RequiresRecalc 
-        {
-            get { return true; }
-            set { }
         }
 
         public override Value Evaluate(FSharpList<Value> args)
@@ -61,13 +58,13 @@ namespace Dynamo.Nodes
                     {
                         Thread.Sleep(delay);
 
-                        if (Controller == null || Controller.RunCancelled)
+                        if (dynSettings.Controller == null || dynSettings.Controller.RunCancelled)
                             return;
 
-                        while (Controller.Running)
+                        while (dynSettings.Controller.Running)
                         {
                             Thread.Sleep(1);
-                            if (Controller.RunCancelled)
+                            if (dynSettings.Controller.RunCancelled)
                                 return;
                         }
 
@@ -79,6 +76,18 @@ namespace Dynamo.Nodes
             }
 
             return Value.NewNumber(1);
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            NodeMigrationData migrationData = new NodeMigrationData(data.Document);
+
+            XmlElement oldNode = data.MigratedNodes.ElementAt(0);
+            XmlElement dummyNode = MigrationManager.CreateDummyNode(oldNode, 1, 1);
+            migrationData.AppendNode(dummyNode);
+
+            return migrationData;
         }
     }
 

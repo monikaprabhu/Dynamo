@@ -11,6 +11,7 @@ using Dynamo.Models;
 using Dynamo.Revit;
 using Dynamo.Utilities;
 using Microsoft.FSharp.Collections;
+using RevitServices.Persistence;
 
 namespace Dynamo.Nodes
 {
@@ -329,6 +330,38 @@ namespace Dynamo.Nodes
                 _sformCurveToReferenceCurveMap = new Dictionary<ElementId, ElementId>();
             }
         }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            NodeMigrationData migratedData = new NodeMigrationData(data.Document);
+            XmlElement oldNode = data.MigratedNodes.ElementAt(0);
+            string oldNodeId = MigrationManager.GetGuidFromXmlElement(oldNode);
+
+            //create the node itself
+            XmlElement dsRevitNode = MigrationManager.CreateFunctionNodeFrom(oldNode);
+            MigrationManager.SetFunctionSignature(dsRevitNode, "RevitNodes.dll", 
+                "Form.ByLoftingCurveReferences", 
+                "Form.ByLoftingCurveReferences@CurveReference[],bool");
+
+            migratedData.AppendNode(dsRevitNode);
+            string dsRevitNodeId = MigrationManager.GetGuidFromXmlElement(dsRevitNode);
+
+            //create and reconnect the connecters
+            PortId oldInPort0 = new PortId(oldNodeId, 0, PortType.INPUT);
+            XmlElement connector0 = data.FindFirstConnector(oldInPort0);
+
+            PortId oldInPort1 = new PortId(oldNodeId, 1, PortType.INPUT);
+            XmlElement connector1 = data.FindFirstConnector(oldInPort1);
+
+            PortId newInPort0 = new PortId(dsRevitNodeId, 0, PortType.INPUT);
+            PortId newInPort1 = new PortId(dsRevitNodeId, 1, PortType.INPUT);
+
+            data.ReconnectToPort(connector0, newInPort1);
+            data.ReconnectToPort(connector1, newInPort0);
+
+            return migratedData;
+        }
     }
 
     [NodeName("Revolve")]
@@ -362,6 +395,12 @@ namespace Dynamo.Nodes
             var result = GeometryCreationUtilities.CreateRevolvedGeometry(thisFrame, loopList, start, end);
 
             return FScheme.Value.NewContainer(result);
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll", "Solid.ByRevolve", "Solid.ByRevolve@Curve[],CoordinateSystem,double,double");
         }
     }
 
@@ -486,6 +525,41 @@ namespace Dynamo.Nodes
 
             return FScheme.Value.NewContainer(result);
         }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            NodeMigrationData migrationData = new NodeMigrationData(data.Document);
+
+            // Create DSFunction node
+            XmlElement oldNode = data.MigratedNodes.ElementAt(0);
+
+            var newNode = MigrationManager.CreateFunctionNodeFrom(oldNode);
+            MigrationManager.SetFunctionSignature(newNode, "ProtoGeometry.dll",
+                "Autodesk.DesignScript.Geometry.Solid.BySweep",
+                "Autodesk.DesignScript.Geometry.Solid.BySweep@" + 
+                "Autodesk.DesignScript.Geometry.Curve,Autodesk.DesignScript.Geometry.Curve");
+            migrationData.AppendNode(newNode);
+            string newNodeId = MigrationManager.GetGuidFromXmlElement(newNode);
+
+            // Update connectors
+            PortId oldInPort0 = new PortId(newNodeId, 0, PortType.INPUT);
+            PortId oldInPort1 = new PortId(newNodeId, 1, PortType.INPUT);
+            PortId oldInPort3 = new PortId(newNodeId, 3, PortType.INPUT);
+
+            PortId newInPort0 = new PortId(newNodeId, 0, PortType.INPUT);
+            PortId newInPort1 = new PortId(newNodeId, 1, PortType.INPUT);
+
+            XmlElement connector0 = data.FindFirstConnector(oldInPort0);
+            XmlElement connector3 = data.FindFirstConnector(oldInPort3);
+            data.RemoveFirstConnector(oldInPort1);
+
+            //connector1.RemoveAll();
+            data.ReconnectToPort(connector0, newInPort1);
+            data.ReconnectToPort(connector3, newInPort0);
+
+            return migrationData;
+        }
     }
 
     [NodeName("Extrude")]
@@ -515,6 +589,12 @@ namespace Dynamo.Nodes
 
             return FScheme.Value.NewContainer(result);
         }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll", "Solid.ByExtrusion", "Solid.ByExtrusion@Curve[],Vector,double");
+        }
     }
 
     [NodeName("Blend")]
@@ -538,7 +618,7 @@ namespace Dynamo.Nodes
 
             List<VertexPair> vertPairs = null;
 
-            if (dynRevitSettings.Revit.Application.VersionName.Contains("2013"))
+            if (DocumentManager.Instance.CurrentUIDocument.Application.Application.VersionName.Contains("2013"))
             {
                 vertPairs = new List<VertexPair>();
 
@@ -554,6 +634,42 @@ namespace Dynamo.Nodes
             var result = GeometryCreationUtilities.CreateBlendGeometry(firstLoop, secondLoop, vertPairs);
 
             return FScheme.Value.NewContainer(result);
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            NodeMigrationData migratedData = new NodeMigrationData(data.Document);
+            XmlElement oldNode = data.MigratedNodes.ElementAt(0);
+            string oldNodeId = MigrationManager.GetGuidFromXmlElement(oldNode);
+
+            XmlElement dsRevitNode = MigrationManager.CreateFunctionNodeFrom(oldNode);
+            MigrationManager.SetFunctionSignature(dsRevitNode, "RevitNodes.dll",
+                "Solid.ByBlend", "Solid.ByBlend@Curve[][]");
+            migratedData.AppendNode(dsRevitNode);
+            string dsRevitNodeId = MigrationManager.GetGuidFromXmlElement(dsRevitNode);
+
+            XmlElement createListNode = MigrationManager.CreateNode(data.Document,
+                "DSCoreNodesUI.CreateList", "Create List");
+            migratedData.AppendNode(createListNode);
+            createListNode.SetAttribute("inputcount", "2");
+            string createListNodeId = MigrationManager.GetGuidFromXmlElement(createListNode);
+
+            //create and reconnect the connecters
+            PortId oldInPort0 = new PortId(oldNodeId, 0, PortType.INPUT);
+            XmlElement connector0 = data.FindFirstConnector(oldInPort0);
+
+            PortId oldInPort1 = new PortId(oldNodeId, 1, PortType.INPUT);
+            XmlElement connector1 = data.FindFirstConnector(oldInPort1);
+
+            PortId newInPort0 = new PortId(createListNodeId, 0, PortType.INPUT);
+            PortId newInPort1 = new PortId(createListNodeId, 1, PortType.INPUT);
+
+            data.ReconnectToPort(connector0, newInPort0);
+            data.ReconnectToPort(connector1, newInPort1);
+            data.CreateConnector(createListNode, 0, dsRevitNode, 0);
+
+            return migratedData;
         }
     }
 
@@ -651,7 +767,7 @@ namespace Dynamo.Nodes
             RegisterAllPorts();
         }
         
-        public override void SetupCustomUIElements(object ui)
+        public void SetupCustomUIElements(object ui)
         {
             var nodeUI = ui as dynNodeView;
 
@@ -742,6 +858,18 @@ namespace Dynamo.Nodes
 
             return FScheme.Value.NewContainer(result);
         }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            NodeMigrationData migrationData = new NodeMigrationData(data.Document);
+
+            XmlElement oldNode = data.MigratedNodes.ElementAt(0);
+            XmlElement dummyNode = MigrationManager.CreateDummyNode(oldNode, 2, 1);
+            migrationData.AppendNode(dummyNode);
+
+            return migrationData;
+        }
     }
 
     [NodeName("Boolean Difference")]
@@ -769,6 +897,13 @@ namespace Dynamo.Nodes
             var result = BooleanOperationsUtils.ExecuteBooleanOperation(firstSolid, secondSolid, BooleanOperationsType.Difference);
 
             return FScheme.Value.NewContainer(result);
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll", "Solid.ByBooleanDifference",
+                "Solid.ByBooleanDifference@Solid,Solid");
         }
     }
 
@@ -798,6 +933,13 @@ namespace Dynamo.Nodes
 
             return FScheme.Value.NewContainer(result);
         }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll", "Solid.ByBooleanUnion",
+                "Solid.ByBooleanUnion@Solid,Solid");
+        }
     }
 
     [NodeName("Boolean Intersect")]
@@ -826,8 +968,15 @@ namespace Dynamo.Nodes
 
             return FScheme.Value.NewContainer(result);
         }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll", "Solid.ByBooleanIntersection",
+                "Solid.ByBooleanIntersection@Solid,Solid");
+        }
     }
-    /*
+
     [NodeName("Solid from Element")]
     [NodeCategory(BuiltinNodeCategories.GEOMETRY_SOLID_QUERY)]
     [NodeDescription("Creates reference to the solid in the element's geometry objects.")]
@@ -945,9 +1094,15 @@ namespace Dynamo.Nodes
 
             return FScheme.Value.NewContainer(mySolid);
         }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll",
+                "Solid.FromElement", "Solid.FromElement@AbstractElement");
+        }
     }
-    */
-    /*
+
     [NodeName("Cylinder")]
     [NodeCategory(BuiltinNodeCategories.GEOMETRY_SOLID_PRIMITIVES)]
     [NodeDescription("Create a cylinder from the axis, origin, radius, and height")]
@@ -977,8 +1132,9 @@ namespace Dynamo.Nodes
             var xaxis = yaxis.CrossProduct(zaxis);
 
             // create circle (this is ridiculous, but curve loop doesn't work with a circle - you need two arcs)
-            var arc1 = dynRevitSettings.Doc.Application.Application.Create.NewEllipse(origin, radius, radius, xaxis, yaxis, 0, Circle.RevitPI);
-            var arc2 = dynRevitSettings.Doc.Application.Application.Create.NewEllipse(origin, radius, radius, xaxis, yaxis, Circle.RevitPI, 2 * Circle.RevitPI);
+            var document = DocumentManager.Instance.CurrentUIDocument.Application;
+            var arc1 = document.Application.Create.NewEllipse(origin, radius, radius, xaxis, yaxis, 0, Circle.RevitPI);
+            var arc2 = document.Application.Create.NewEllipse(origin, radius, radius, xaxis, yaxis, Circle.RevitPI, 2 * Circle.RevitPI);
 
             // create curve loop from cirle
             var circleLoop = Autodesk.Revit.DB.CurveLoop.Create(new List<Curve>() { arc1, arc2 });
@@ -998,8 +1154,49 @@ namespace Dynamo.Nodes
             // create and return geom
             return FScheme.Value.NewContainer(CylinderByAxisOriginRadiusHeight(axis, origin, radius, height));
         }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            NodeMigrationData migratedData = new NodeMigrationData(data.Document);
+            XmlElement oldNode = data.MigratedNodes.ElementAt(0);
+            string oldNodeId = MigrationManager.GetGuidFromXmlElement(oldNode);
+
+            //create the node itself
+            XmlElement dsRevitNode = MigrationManager.CreateFunctionNodeFrom(oldNode);
+            MigrationManager.SetFunctionSignature(dsRevitNode, "RevitNodes.dll",
+                "Solid.Cylinder", "Solid.Cylinder@Point,double,Vector,double");
+
+            migratedData.AppendNode(dsRevitNode);
+            string dsRevitNodeId = MigrationManager.GetGuidFromXmlElement(dsRevitNode);
+
+            //create and reconnect the connecters
+            PortId oldInPort0 = new PortId(oldNodeId, 0, PortType.INPUT);
+            XmlElement connector0 = data.FindFirstConnector(oldInPort0);
+
+            PortId oldInPort1 = new PortId(oldNodeId, 1, PortType.INPUT);
+            XmlElement connector1 = data.FindFirstConnector(oldInPort1);
+
+            PortId oldInPort2 = new PortId(oldNodeId, 2, PortType.INPUT);
+            XmlElement connector2 = data.FindFirstConnector(oldInPort2);
+
+            PortId oldInPort3 = new PortId(oldNodeId, 3, PortType.INPUT);
+            XmlElement connector3 = data.FindFirstConnector(oldInPort3);
+
+            PortId newInPort0 = new PortId(dsRevitNodeId, 0, PortType.INPUT);
+            PortId newInPort1 = new PortId(dsRevitNodeId, 1, PortType.INPUT);
+            PortId newInPort2 = new PortId(dsRevitNodeId, 2, PortType.INPUT);
+            PortId newInPort3 = new PortId(dsRevitNodeId, 3, PortType.INPUT);
+
+            data.ReconnectToPort(connector0, newInPort2);
+            data.ReconnectToPort(connector1, newInPort0);
+            data.ReconnectToPort(connector2, newInPort1);
+            data.ReconnectToPort(connector3, newInPort3);
+
+            return migratedData;
+        }
     }
-    */
+
     [NodeName("Sphere")]
     [NodeCategory(BuiltinNodeCategories.GEOMETRY_SOLID_PRIMITIVES)]
     [NodeDescription("Creates sphere from a center point and axis")]
@@ -1020,10 +1217,11 @@ namespace Dynamo.Nodes
         {
 
             // create semicircular arc
-            var semicircle = dynRevitSettings.Doc.Application.Application.Create.NewArc(center, radius, 0, Circle.RevitPI, XYZ.BasisZ, XYZ.BasisX);
+            var application = DocumentManager.Instance.CurrentUIDocument.Application;
+            var semicircle = application.Application.Create.NewArc(center, radius, 0, Circle.RevitPI, XYZ.BasisZ, XYZ.BasisX);
 
             // create axis curve of cylinder
-            var axisCurve = dynRevitSettings.Doc.Application.Application.Create.NewLineBound(new XYZ(0, 0, -radius) + center,
+            var axisCurve = application.Application.Create.NewLineBound(new XYZ(0, 0, -radius) + center,
                 new XYZ(0, 0, radius) + center );
 
             var circleLoop = Autodesk.Revit.DB.CurveLoop.Create(new List<Curve>() { semicircle, axisCurve });
@@ -1043,6 +1241,12 @@ namespace Dynamo.Nodes
             var radius = ((FScheme.Value.Number)args[1]).Item;
 
             return FScheme.Value.NewContainer(SphereByCenterRadius(center, radius));
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll", "Solid.Sphere", "Solid.Sphere@Point,double");
         }
     }
 
@@ -1081,8 +1285,9 @@ namespace Dynamo.Nodes
             var origin = center + xaxis * radius;
 
             // create circle (this is ridiculous but curve loop doesn't work with a circle
-            var arc1 = dynRevitSettings.Doc.Application.Application.Create.NewEllipse(origin, sectionRadius, sectionRadius, xaxis, zaxis, 0, Circle.RevitPI);
-            var arc2 = dynRevitSettings.Doc.Application.Application.Create.NewEllipse(origin, sectionRadius, sectionRadius, xaxis, zaxis, Circle.RevitPI, 2 * Circle.RevitPI);
+            var application = DocumentManager.Instance.CurrentUIDocument.Application;
+            var arc1 = application.Application.Create.NewEllipse(origin, sectionRadius, sectionRadius, xaxis, zaxis, 0, Circle.RevitPI);
+            var arc2 = application.Application.Create.NewEllipse(origin, sectionRadius, sectionRadius, xaxis, zaxis, Circle.RevitPI, 2 * Circle.RevitPI);
 
             // create curve loop from cirle
             var circleLoop = Autodesk.Revit.DB.CurveLoop.Create(new List<Curve>() { arc1, arc2 });
@@ -1105,6 +1310,12 @@ namespace Dynamo.Nodes
 
             // build and return geom
             return FScheme.Value.NewContainer(TorusByAxisOriginRadiusCrossSectionRadius(axis, center, radius, sectionradius));
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll", "Solid.Torus", "Solid.Torus@Vector,Point,double,double");
         }
     }
 
@@ -1144,10 +1355,11 @@ namespace Dynamo.Nodes
             var p3 = p2 - new XYZ(top.X - bottom.X, 0, 0);
 
             // form edges of base rect
-            var l1 = dynRevitSettings.Doc.Application.Application.Create.NewLineBound(p0, p1);
-            var l2 = dynRevitSettings.Doc.Application.Application.Create.NewLineBound(p1, p2);
-            var l3 = dynRevitSettings.Doc.Application.Application.Create.NewLineBound(p2, p3);
-            var l4 = dynRevitSettings.Doc.Application.Application.Create.NewLineBound(p3, p0);
+            var application = DocumentManager.Instance.CurrentUIDocument.Application;
+            var l1 = application.Application.Create.NewLineBound(p0, p1);
+            var l2 = application.Application.Create.NewLineBound(p1, p2);
+            var l3 = application.Application.Create.NewLineBound(p2, p3);
+            var l4 = application.Application.Create.NewLineBound(p3, p0);
 
             // form curve loop from lines of base rect
             var cl = new Autodesk.Revit.DB.CurveLoop();
@@ -1174,6 +1386,13 @@ namespace Dynamo.Nodes
 
             // build and return geom
             return FScheme.Value.NewContainer(AlignedBoxByTwoCorners(bottom, top));
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll", "Solid.BoxByTwoCorners",
+                "Solid.BoxByTwoCorners@Point,Point");
         }
     }
 
@@ -1214,6 +1433,13 @@ namespace Dynamo.Nodes
 
             // build and return geom
             return FScheme.Value.NewContainer(AlignedBoxByCenterAndDimensions(center, x, y, z));
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "RevitNodes.dll", "Solid.BoxByCenterAndDimensions",
+                "Solid.BoxByCenterAndDimensions@Point,double,double,double");
         }
     }
 
@@ -1325,6 +1551,12 @@ namespace Dynamo.Nodes
 
             return FScheme.Value.NewList(result);
         }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "ProtoGeometry.dll", "Geometry.Explode", "Geometry.Explode");
+        }
     }
 
     [NodeName("Transform Solid")]
@@ -1390,6 +1622,13 @@ namespace Dynamo.Nodes
             }
 
             return FScheme.Value.NewContainer(result);
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "DSCoreNodes.dll", "Geometry.Transform",
+                "Geometry.Transform@CoordinateSystem");
         }
     }
 
@@ -1470,7 +1709,7 @@ namespace Dynamo.Nodes
             FSharpList<FScheme.Value> vals = ((FScheme.Value.List)args[1]).Item;
             List<GeometryObject> edgesToBeReplaced = new List<GeometryObject>();
 
-            var doc = dynRevitSettings.Doc;
+            var doc = DocumentManager.Instance.CurrentUIDocument;
 
             for (int ii = 0; ii < vals.Count(); ii++)
             {
@@ -1550,7 +1789,7 @@ namespace Dynamo.Nodes
 
             var vals = ((FScheme.Value.List)args[1]).Item;
             var edgesToBeReplaced = new List<GeometryObject>();
-            var doc = dynRevitSettings.Doc;
+            var doc = DocumentManager.Instance.CurrentUIDocument;
 
             for (int ii = 0; ii < vals.Count(); ii++)
             {
@@ -1824,7 +2063,7 @@ namespace Dynamo.Nodes
             }
 
             //Fin
-            return FScheme.Value.NewContainer(Units.Volume.FromCubicFeet(volume, dynSettings.Controller.UnitsManager));
+            return FScheme.Value.NewContainer(Units.Volume.FromCubicFeet(volume));
         }
     }
 

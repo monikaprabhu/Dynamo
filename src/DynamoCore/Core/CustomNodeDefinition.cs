@@ -170,23 +170,24 @@ namespace Dynamo
             inputNames = variables.Select(x => x.InputSymbol);
 
             //Update existing function nodes which point to this function to match its changes
-            dynSettings.Controller.DynamoModel.AllNodes
+            var customNodeInstances = dynSettings.Controller.DynamoModel.AllNodes
                 .OfType<Function>()
-                .Where(el => el.Definition != null && el.Definition.FunctionId == FunctionId)
-                .ToList()
-                .ForEach(node =>
-                {
-                    node.DisableReporting();
+                .Where(el => el.Definition != null && el.Definition.FunctionId == FunctionId);
 
-                    node.SetInputs(inputNames);
-                    node.SetOutputs(outputNames);
-                    node.RegisterAllPorts();
+            foreach (var node in customNodeInstances)    
+            {
+                node.DisableReporting();
 
-                    node.EnableReporting();
-                });
+                node.SetInputs(inputNames);
+                node.SetOutputs(outputNames);
+                node.RegisterAllPorts();
+
+                node.EnableReporting();
+            }
 
             //Call OnSave for all saved elements
-            functionWorkspace.Nodes.ToList().ForEach(x => x.onSave());
+            foreach (NodeModel node in functionWorkspace.Nodes)
+                node.OnSave();
 
             INode top;
             var buildDict = new Dictionary<NodeModel, Dictionary<int, INode>>();
@@ -285,8 +286,11 @@ namespace Dynamo
             // these will serve as the function output
             if (outputs.Any())
             {
-                topMost.AddRange(outputs.Where(x => x.HasInput(0)).Select(x => new Tuple<int, NodeModel>(0, x)));
-                ReturnKeys = outputs.Select(x => x.Symbol);
+                topMost.AddRange(
+                    outputs.Where(x => x.HasInput(0)).Select(x => new Tuple<int, NodeModel>(0, x)));
+                ReturnKeys =
+                    outputs.Select(
+                        (x, i) => !string.IsNullOrEmpty(x.Symbol) ? x.Symbol : i.ToString());
             }
             else
             {
@@ -296,23 +300,28 @@ namespace Dynamo
 
                 var outNames = new List<string>();
 
-                foreach (NodeModel topNode in topMostNodes)
-                {
-                    if (topNode is Function && (topNode as Function).Definition == this)
-                    {
-                        topMost.Add(Tuple.Create(0, topNode));
-                        outNames.Add("∞");
-                        continue;
-                    }
+                var rtnPorts =
+                    //Grab multiple returns from each node
+                    topMostNodes.SelectMany(
+                        topNode =>
+                            //If the node is a recursive instance...
+                            topNode is Function && (topNode as Function).Definition == this
+                                // infinity output
+                                ? new[] { new { portIndex = 0, node = topNode, name = "∞" } }
+                                // otherwise, grab all ports with connected outputs and package necessary info
+                                : topNode.OutPortData
+                                    .Select(
+                                        (port, i) =>
+                                            new { portIndex = i, node = topNode, name = port.NickName })
+                                    .Where(x => !topNode.HasOutput(x.portIndex)));
 
-                    foreach (int output in Enumerable.Range(0, topNode.OutPortData.Count))
-                    {
-                        if (!topNode.HasOutput(output))
-                        {
-                            topMost.Add(Tuple.Create(output, topNode));
-                            outNames.Add(topNode.OutPortData[output].NickName);
-                        }
-                    }
+                foreach (var rtnAndIndex in rtnPorts.Select((rtn, i) => new { rtn, idx = i }))
+                {
+                    topMost.Add(Tuple.Create(rtnAndIndex.rtn.portIndex, rtnAndIndex.rtn.node));
+                    outNames.Add(
+                        rtnAndIndex.rtn.name != null
+                            ? rtnAndIndex.rtn.name + rtnAndIndex.idx
+                            : rtnAndIndex.idx.ToString());
                 }
 
                 ReturnKeys = outNames;
@@ -320,50 +329,34 @@ namespace Dynamo
 
             #endregion
 
-            // color the node to define its connectivity
-            //foreach (var ele in topMost)
-            //{
-            //    ele.Item2.ValidateConnections();
-            //}
-
             //Find function entry point, and then compile
             var inputNodes = WorkspaceModel.Nodes.OfType<Symbol>().ToList();
             var parameters = inputNodes.Select(x => string.IsNullOrEmpty(x.InputSymbol) ? x.AstIdentifierForPreview.Value: x.InputSymbol);
             Parameters = inputNodes.Select(x => x.InputSymbol);
 
             //Update existing function nodes which point to this function to match its changes
-            dynSettings.Controller.DynamoModel.AllNodes
+            var customNodeInstances = dynSettings.Controller.DynamoModel.AllNodes
                         .OfType<Function>()
-                        .Where(el => el.Definition != null && el.Definition == this)
-                        .ToList()
-                        .ForEach(node =>
-                        {
-                            node.DisableReporting();
-                            node.SetInputs(Parameters);
-                            node.SetOutputs(ReturnKeys);
-                            node.RegisterAllPorts();
-                            node.EnableReporting();
-                        });
-
-            /*
-            foreach (var node in instances)
+                        .Where(el => el.Definition != null && el.Definition == this);
+            
+            foreach (var node in customNodeInstances)
                 node.ResyncWithDefinition();
-            */
 
             //Call OnSave for all saved elements
             foreach (var node in WorkspaceModel.Nodes)
-                node.onSave();
+                node.OnSave();
 
             #endregion
 
-            var success = controller.GenerateGraphSyncDataForCustomNode(
-                FunctionId,
-                WorkspaceModel.Nodes.Where(x => !(x is Symbol)) ,
+            controller.GenerateGraphSyncDataForCustomNode(
+                this,
+                WorkspaceModel.Nodes.Where(x => !(x is Symbol)),
                 topMost.Select(x => x.Item2.GetAstIdentifierForOutputIndex(x.Item1) as AssociativeNode).ToList(),
                 parameters);
 
-            if (success)
-                controller.UpdateGraph();
+            // Not update graph until Run 
+            // if (success)
+            //    controller.UpdateGraph();
         }
 
         #endregion

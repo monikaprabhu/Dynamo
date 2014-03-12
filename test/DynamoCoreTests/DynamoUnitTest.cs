@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dynamo.FSchemeInterop;
 using Dynamo.Interfaces;
-using Dynamo.Nodes;
-using Dynamo.Units;
 using Dynamo.UpdateManager;
 using Dynamo.Utilities;
 using Dynamo.ViewModels;
-using DynamoUnits;
 using NUnit.Framework;
 
 namespace Dynamo.Tests
@@ -24,12 +20,12 @@ namespace Dynamo.Tests
             StartDynamo();
         }
 
-        [TearDown]
         public override void Cleanup()
         {
             try
             {
                 Controller.ShutDown(false);
+                this.Controller = null;
             }
             catch (Exception ex)
             {
@@ -53,24 +49,20 @@ namespace Dynamo.Tests
 
         protected void StartDynamo()
         {
-            //create a new instance of the ViewModel
-            Controller = new DynamoController(new ExecutionEnvironment(), typeof (DynamoViewModel), Context.NONE, new UpdateManager.UpdateManager(), new UnitsManager(), new DefaultWatchHandler(), new PreferenceSettings())
-            {
-                Testing = true
-            };
+            ////create a new instance of the ViewModel
+            Controller = new DynamoController(typeof(DynamoViewModel), Context.NONE, new UpdateManager.UpdateManager(), new DefaultWatchHandler(), new PreferenceSettings());
+            DynamoController.IsTestMode = true;
         }
 
         /// <summary>
         /// Enables starting Dynamo with a mock IUpdateManager
         /// </summary>
         /// <param name="updateManager"></param>
-        protected void StartDynamo(IUpdateManager updateManager, IUnitsManager unitsManager, IWatchHandler watchHandler, IPreferences preferences)
+        protected void StartDynamo(IUpdateManager updateManager, IWatchHandler watchHandler, IPreferences preferences)
         {
             //create a new instance of the ViewModel
-            Controller = new DynamoController(new ExecutionEnvironment(), typeof(DynamoViewModel), Context.NONE, updateManager, unitsManager, watchHandler, preferences)
-            {
-                Testing = true
-            };
+            Controller = new DynamoController(typeof(DynamoViewModel), Context.NONE, updateManager, watchHandler, preferences);
+            DynamoController.IsTestMode = true;
         }
 
         /// <summary>
@@ -93,7 +85,7 @@ namespace Dynamo.Tests
 
             foreach (var test in tests)
             {
-                var runResult = model.CurrentWorkspace.NodeFromWorkspace(test.Key).OldValue.UnwrapFSchemeValue();
+                var runResult = model.CurrentWorkspace.NodeFromWorkspace(test.Key).OldValue.Data;
                 Assert.AreEqual(test.Value, runResult);
             }
         }

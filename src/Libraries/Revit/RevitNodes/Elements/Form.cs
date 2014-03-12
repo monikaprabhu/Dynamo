@@ -10,6 +10,7 @@ using Revit.References;
 using RevitServices.Persistence;
 using RevitServices.Transactions;
 using Face = Revit.GeometryObjects.Face;
+using Solid = Revit.GeometryObjects.Solid;
 
 namespace Revit.Elements
 {
@@ -53,12 +54,12 @@ namespace Revit.Elements
         private Form(bool isSolid, ReferenceArrayArray curves)
         {
             // clean it up
-            TransactionManager.GetInstance().EnsureInTransaction(Document);
+            TransactionManager.Instance.EnsureInTransaction(Document);
 
             var f = Document.FamilyCreate.NewLoftForm(isSolid, curves);
             InternalSetForm(f);
 
-            TransactionManager.GetInstance().TransactionTaskDone();
+            TransactionManager.Instance.TransactionTaskDone();
 
             ElementBinder.CleanupAndSetElementForTrace(Document, this.InternalElementId);
         }
@@ -91,7 +92,10 @@ namespace Revit.Elements
         {
             get
             {
-                return EnumerateFaces().Select(x => new FaceReference(x)).ToArray();
+                return this.GetFaces(new Options()
+                {
+                    ComputeReferences = true
+                }).Select(x => new FaceReference(x)).ToArray();
             }
         }
 
@@ -102,7 +106,10 @@ namespace Revit.Elements
         {
             get
             {
-                return EnumerateFaces().Select(Face.FromExisting).ToArray();
+                return this.GetFaces(new Options()
+                {
+                    ComputeReferences = true
+                }).Select(Face.FromExisting).ToArray();
             }
         }
 

@@ -54,7 +54,7 @@ namespace Revit.Elements
             }
 
             //Phase 2- There was no existing point, create one
-            TransactionManager.GetInstance().EnsureInTransaction(Document);
+            TransactionManager.Instance.EnsureInTransaction(Document);
 
             var creationData = GetCreationData(curve, upVector, level, structuralType, symbol);
             
@@ -84,7 +84,7 @@ namespace Revit.Elements
 
             InternalSetFamilyInstance(fi);
 
-            TransactionManager.GetInstance().TransactionTaskDone();
+            TransactionManager.Instance.TransactionTaskDone();
 
             ElementBinder.SetElementForTrace(this.InternalElementId);
         }
@@ -105,8 +105,8 @@ namespace Revit.Elements
 
             //flatten the beam line onto the XZ plane
             //using the start's z coordinate
-            var start = curve.get_EndPoint(0);
-            var end = curve.get_EndPoint(1);
+            var start = curve.GetEndPoint(0);
+            var end = curve.GetEndPoint(1);
             var newEnd = new XYZ(end.X, end.Y, start.Z); //drop end point to plane
 
             //catch the case where the end is directly above
@@ -129,13 +129,13 @@ namespace Revit.Elements
 
         private void InternalSetCurve(Autodesk.Revit.DB.Curve crv)
         {
-            TransactionManager.GetInstance().EnsureInTransaction(Document);
+            TransactionManager.Instance.EnsureInTransaction(Document);
 
             //update the curve
             var locCurve = InternalFamilyInstance.Location as LocationCurve;
             locCurve.Curve = crv;
 
-            TransactionManager.GetInstance().TransactionTaskDone();
+            TransactionManager.Instance.TransactionTaskDone();
         }
 
         #endregion

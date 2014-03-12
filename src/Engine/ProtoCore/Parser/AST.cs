@@ -24,13 +24,22 @@
 
         public Node(Node rhs)
         {
-            ID = ++sID;
+            ID = rhs.ID;
             line = rhs.line;
             col = rhs.col;
             endLine = rhs.endLine;
             endCol = rhs.endCol;
             Name = rhs.Name;
             skipMe = rhs.skipMe;
+        }
+
+        /// <summary>
+        /// An explicit mechanism to manually set the ID of an AST node
+        /// </summary>
+        /// <param name="id"></param>
+        public void InheritID(int id)
+        {
+            ID = id;
         }
     }
 }

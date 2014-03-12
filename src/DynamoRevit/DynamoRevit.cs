@@ -70,9 +70,11 @@ namespace Dynamo.Applications
 
                 Updater = new RevitServicesUpdater(application.ControlledApplication);
 
-                TransactionManager.SetupManager(new DebugTransactionStrategy());
+                TransactionManager.SetupManager(new AutomaticTransactionStrategy());
 
                 env = new ExecutionEnvironment();
+
+                ElementBinder.IsEnabled = true;
 
                 return Result.Succeeded;
             }
@@ -145,11 +147,11 @@ namespace Dynamo.Applications
 
                 #endregion
 
-                DocumentManager.GetInstance().CurrentDBDocument = revit.Application.ActiveUIDocument.Document;
-                DocumentManager.GetInstance().CurrentUIDocument = revit.Application.ActiveUIDocument;
-                DocumentManager.GetInstance().CurrentUIApplication = revit.Application;
+                DocumentManager.Instance.CurrentDBDocument = revit.Application.ActiveUIDocument.Document;
+                DocumentManager.Instance.CurrentUIDocument = revit.Application.ActiveUIDocument;
+                DocumentManager.Instance.CurrentUIApplication = revit.Application;
                 
-                DocumentManager.GetInstance().CurrentUIDocument = revit.Application.ActiveUIDocument;
+                DocumentManager.Instance.CurrentUIDocument = revit.Application.ActiveUIDocument;
 
                 dynRevitSettings.DefaultLevel = defaultLevel;
 
@@ -170,14 +172,11 @@ namespace Dynamo.Applications
                     if (context == "Vasari")
                         context = "Vasari 2014";
 
-                    var units = new UnitsManager
-                    {
-                        HostApplicationInternalAreaUnit = DynamoAreaUnit.SquareFoot,
-                        HostApplicationInternalLengthUnit = DynamoLengthUnit.DecimalFoot,
-                        HostApplicationInternalVolumeUnit = DynamoVolumeUnit.CubicFoot
-                    };
+                    SIUnit.HostApplicationInternalAreaUnit = DynamoAreaUnit.SquareFoot;
+                    SIUnit.HostApplicationInternalLengthUnit = DynamoLengthUnit.DecimalFoot;
+                    SIUnit.HostApplicationInternalVolumeUnit = DynamoVolumeUnit.CubicFoot;
 
-                    dynamoController = new DynamoController_Revit(DynamoRevitApp.env, DynamoRevitApp.Updater, typeof(DynamoRevitViewModel), context, units);
+                    dynamoController = new DynamoController_Revit(DynamoRevitApp.env, DynamoRevitApp.Updater, typeof(DynamoRevitViewModel), context);
                         
                     dynamoView = new DynamoView { DataContext = dynamoController.DynamoViewModel };
                     dynamoController.UIDispatcher = dynamoView.Dispatcher;
@@ -282,6 +281,7 @@ namespace Dynamo.Applications
 
             try
             {
+                dynSettings.Controller.IsCrashing = true;
                 dynSettings.Controller.OnRequestsCrashPrompt(this, new CrashPromptArgs(args.Exception.Message + "\n\n" + args.Exception.StackTrace));
                 dynSettings.Controller.DynamoViewModel.Exit(false); // don't allow cancellation
             }

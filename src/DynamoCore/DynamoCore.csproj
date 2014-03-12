@@ -93,10 +93,12 @@ limitations under the License.
     <Reference Include="ProtoGeometry, Version=0.1.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\extern\ProtoGeometry\ProtoGeometry.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="ProtoInterface, Version=0.1.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\extern\ProtoGeometry\ProtoInterface.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="RestSharp, Version=104.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -128,7 +130,9 @@ limitations under the License.
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\UndoRedoRecorder.cs" />
-    <Compile Include="Nodes\CustomNodeInstance.cs" />
+    <Compile Include="Library\DocumentationServices.cs" />
+    <Compile Include="Library\LibraryCustomization.cs" />
+    <Compile Include="Library\XmlDocumentationExtensions.cs" />
     <Compile Include="Interfaces\ILogger.cs" />
     <Compile Include="Interfaces\IPreferences.cs" />
     <Compile Include="Interfaces\IWatchHandler.cs" />
@@ -142,7 +146,7 @@ limitations under the License.
     </Compile>
     <Compile Include="UI\Configurations.cs" />
     <Compile Include="DSEngine\AstBuilder.cs" />
-    <Compile Include="DSEngine\DSLibrary.cs" />
+    <Compile Include="Library\Library.cs" />
     <Compile Include="DSEngine\EngineController.cs" />
     <Compile Include="DSEngine\LiveRunnerServices.cs" />
     <Compile Include="DSEngine\NodeToCode.cs" />
@@ -325,7 +329,7 @@ limitations under the License.
     <Compile Include="Models\NodeModel.cs" />
     <Compile Include="Core\dynSettings.cs" />
     <Compile Include="Models\WorkspaceModel.cs" />
-    <Compile Include="Nodes\dynWatch.cs" />
+    <Compile Include="Nodes\Watch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -356,8 +360,6 @@ limitations under the License.
     <Compile Include="DSEngine\RenderPackage.cs" />
     <Compile Include="VisualizationManager\Visualization.cs" />
     <Compile Include="VisualizationManager\VisualizationManager.cs" />
-    <Compile Include="VisualizationManager\VisualizationManagerASM.cs" />
-    <Compile Include="DSEngine\VisualizationManagerDSGeometry.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -432,9 +434,9 @@ limitations under the License.
       <Project>{6e0a079e-85f1-45a1-ad5b-9855e4344809}</Project>
       <Name>Units</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Render\DesignScriptStudio.Renderer\DesignScriptStudio.Renderer.vcxproj">
-      <Project>{a69e7467-7a33-4242-aea2-984b41130f54}</Project>
-      <Name>DesignScriptStudio.Renderer</Name>
+    <ProjectReference Include="..\NodeServices\NodeServices.csproj">
+      <Project>{ef879a10-041d-4c68-83e7-3192685f1bae}</Project>
+      <Name>NodeServices</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -723,10 +725,14 @@ limitations under the License.
     <PostBuildEvent>mkdir "$(OutputPath)\dll"
 copy /Y "$(SolutionDir)..\extern\LibG\x64\Release\*" "$(OutputPath)\dll"
 </PostBuildEvent>
-    <PostBuildEvent>mkdir "$(OutputPath)\dll"
-copy /Y "$(SolutionDir)..\extern\LibG\x64\Release\*" "$(OutputPath)\dll"
-copy /Y "$(SolutionDir)..\extern\ProtoGeometry\*" "$(OutputPath)"
-copy "$(SolutionDir)..\doc\distrib\License.rtf" "$(OutputPath).\License.rtf"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(SolutionDir)..\extern\ProtoGeometry\*" "$(OutputPath)"
+copy "$(SolutionDir)..\doc\distrib\License.rtf" "$(OutputPath).\License.rtf"
+copy "$(SolutionDir)..\extern\LibG\*" "$(OutputPath)\dll\"
+
+copy "$(SolutionDir)..\tools\install\extra\InstallASMForDynamo.exe" "$(OutputPath)\InstallASMForDynamo.exe"
+IF NOT EXIST "$(OutputPath)\dll" "$(OutputPath)\InstallASMForDynamo.exe" /SILENT /SUPPRESSMSGBOXES
+
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

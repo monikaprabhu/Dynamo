@@ -1,6 +1,6 @@
 ﻿using Autodesk.DesignScript.Geometry;
-using DSCoreNodes;
 using NUnit.Framework;
+using Revit.Geometry;
 using Point = Autodesk.DesignScript.Geometry.Point;
 
 namespace DSCoreNodesTests
@@ -27,7 +27,7 @@ namespace DSCoreNodesTests
                 Autodesk.DesignScript.Geometry.Point.ByCoordinates(10,0,0)
             };
 
-            var spline = Autodesk.DesignScript.Geometry.NurbsCurve.ByControlVertices(pts, 3);
+            var spline = Autodesk.DesignScript.Geometry.NurbsCurve.ByControlPoints(pts, 3);
 
             Assert.NotNull(spline);
             Assert.AreEqual(3, spline.Degree);

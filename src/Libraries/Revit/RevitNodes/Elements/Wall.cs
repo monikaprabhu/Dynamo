@@ -57,12 +57,12 @@ namespace Revit.Elements
         private Wall(Autodesk.Revit.DB.Curve curve, Autodesk.Revit.DB.WallType wallType, Autodesk.Revit.DB.Level baseLevel, double height, double offset, bool flip, bool isStructural)
         {
             // This creates a new wall and deletes the old one
-            TransactionManager.GetInstance().EnsureInTransaction(Document);
+            TransactionManager.Instance.EnsureInTransaction(Document);
 
             var wall = Autodesk.Revit.DB.Wall.Create(Document, curve, wallType.Id, baseLevel.Id, height, offset, flip, isStructural);
             InternalSetWall(wall);
 
-            TransactionManager.GetInstance().TransactionTaskDone();
+            TransactionManager.Instance.TransactionTaskDone();
 
             // delete the element stored in trace and add this new one
             ElementBinder.CleanupAndSetElementForTrace(Document, this.InternalElementId);
@@ -110,6 +110,11 @@ namespace Revit.Elements
             if (wallType == null)
             {
                 throw new ArgumentNullException("wallType");
+            }
+
+            if (height < 1e-6 || height > 30000)
+            {
+                throw new ArgumentException("The height must be greater than 0 and less that 30000 ft.  You provided a height of " + height + " ft.");
             }
 
             return new Wall(curve.ToRevitType(), wallType.InternalWallType, level.InternalLevel, height, 0.0, false, false);

@@ -192,7 +192,7 @@ namespace Dynamo.Utilities
             dynSettings.Controller.SearchViewModel.SearchAndUpdateResults();
 
             // remove from fscheme environment
-            dynSettings.Controller.FSchemeEnvironment.RemoveSymbol(guid.ToString());
+            //dynSettings.Controller.FSchemeEnvironment.RemoveSymbol(guid.ToString());
         }
 
         /// <summary>
@@ -431,7 +431,7 @@ namespace Dynamo.Utilities
                 return false;
             }
 
-            CustomNodeDefinition def = null;
+            CustomNodeDefinition def;
             if (!IsInitialized(guid))
             {
                 if (!GetDefinitionFromPath(guid, out def))
@@ -447,27 +447,27 @@ namespace Dynamo.Utilities
 
             WorkspaceModel ws = def.WorkspaceModel;
 
-            IEnumerable<string> inputs =
-                ws.Nodes.Where(e => e is Symbol)
-                    .Select(s => (s as Symbol).InputSymbol);
+            //IEnumerable<string> inputs =
+            //    ws.Nodes.Where(e => e is Symbol)
+            //        .Select(s => (s as Symbol).InputSymbol);
 
-            IEnumerable<string> outputs =
-                ws.Nodes.Where(e => e is Output)
-                    .Select(o => (o as Output).Symbol);
+            //IEnumerable<string> outputs =
+            //    ws.Nodes.Where(e => e is Output)
+            //        .Select(o => (o as Output).Symbol);
 
-            if (!outputs.Any())
-            {
-                IEnumerable<NodeModel> topMostNodes = ws.GetTopMostNodes();
+            ////if (!outputs.Any())
+            ////{
+            ////    //IEnumerable<NodeModel> topMostNodes = ws.GetTopMostNodes();
 
-                var topMost = (from topNode in topMostNodes
-                               from output in Enumerable.Range(0, topNode.OutPortData.Count)
-                               where !topNode.HasOutput(output)
-                               select Tuple.Create(output, topNode)).ToList();
+            ////    //var topMost = (from topNode in topMostNodes
+            ////    //               from output in Enumerable.Range(0, topNode.OutPortData.Count)
+            ////    //               where !topNode.HasOutput(output)
+            ////    //               select Tuple.Create(output, topNode)).ToList();
 
-                outputs = topMost.Select(x => x.Item2.OutPortData[x.Item1].NickName);
-            }
+            ////    //outputs = topMost.Select(x => x.Item2.OutPortData[x.Item1].NickName);
+            ////}
 
-            result = controller.DynamoViewModel.CreateFunction(inputs, outputs, def);
+            result = controller.DynamoViewModel.CreateFunction(def);
             result.NickName = ws.Name;
 
             return true;
@@ -647,6 +647,26 @@ namespace Dynamo.Utilities
                     }
                 }
 
+                Version fileVersion = MigrationManager.VersionFromString(version);
+
+                var dynamoModel = dynSettings.Controller.DynamoModel;
+                var currentVersion = MigrationManager.VersionFromWorkspace(dynamoModel.HomeSpace);
+                if (fileVersion < currentVersion) // Opening an older file, migrate workspace.
+                {
+                    string backupPath = string.Empty;
+                    bool isTesting = DynamoController.IsTestMode; // No backup during test.
+                    if (!isTesting && MigrationManager.BackupOriginalFile(xmlPath, ref backupPath))
+                    {
+                        string message = string.Format("Original file '{0}' gets backed up at '{1}'",
+                            Path.GetFileName(xmlPath), backupPath);
+
+                        DynamoLogger.Instance.Log(message);
+                    }
+
+                    MigrationManager.Instance.ProcessWorkspaceMigrations(xmlDoc, fileVersion);
+                    MigrationManager.Instance.ProcessNodesInWorkspace(xmlDoc, fileVersion);
+                }
+
                 // we have a dyf and it lacks an ID field, we need to assign it
                 // a deterministic guid based on its name.  By doing it deterministically,
                 // files remain compatible
@@ -679,8 +699,8 @@ namespace Dynamo.Utilities
 
                 // load a dummy version, so any nodes depending on this node
                 // will find an (empty) identifier on compilation
-                FScheme.Expression dummyExpression = FScheme.Expression.NewNumber_E(0);
-                controller.FSchemeEnvironment.DefineSymbol(def.FunctionId.ToString(), dummyExpression);
+                //FScheme.Expression dummyExpression = FScheme.Expression.NewNumber_E(0);
+                //controller.FSchemeEnvironment.DefineSymbol(def.FunctionId.ToString(), dummyExpression);
 
                 // set the node as loaded
                 LoadedCustomNodes.Add(def.FunctionId, def);
@@ -748,7 +768,10 @@ namespace Dynamo.Utilities
                         continue;
                     }
 
-                    NodeModel el = dynSettings.Controller.DynamoModel.CreateNodeInstance(type, nickname, guid);
+                    // Retrieve optional 'function' attribute (only for DSFunction).
+                    XmlAttribute signatureAttrib = elNode.Attributes["function"];
+                    var signature = signatureAttrib == null ? null : signatureAttrib.Value;
+                    NodeModel el = dynamoModel.CreateNodeInstance(type, nickname, signature, guid);
 
                     if (lacingAttrib != null)
                     {
@@ -772,11 +795,7 @@ namespace Dynamo.Utilities
 
                     el.DisableReporting();
 
-                    el.Load(
-                        elNode,
-                        string.IsNullOrEmpty(version)
-                            ? new Version(0, 0, 0, 0) 
-                            : new Version(version));
+                    el.Load(elNode);
                 }
 
                 #endregion
@@ -867,7 +886,7 @@ namespace Dynamo.Utilities
 #if USE_DSENGINE
                 def.Compile(controller.EngineController);
 #else
-                def.CompileAndAddToEnvironment(controller.FSchemeEnvironment); 
+                //def.CompileAndAddToEnvironment(controller.FSchemeEnvironment); 
 #endif
 
                 ws.WatchChanges = true;
@@ -880,7 +899,7 @@ namespace Dynamo.Utilities
                 dynSettings.Controller.DynamoModel.WriteToLog("There was an error opening the workbench.");
                 dynSettings.Controller.DynamoModel.WriteToLog(ex);
 
-                if (controller.Testing)
+                if (DynamoController.IsTestMode)
                     Assert.Fail(ex.Message);
 
                 def = null;

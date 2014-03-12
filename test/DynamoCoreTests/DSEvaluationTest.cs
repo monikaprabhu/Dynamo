@@ -12,7 +12,7 @@ using System.Collections;
 
 namespace Dynamo.Tests
 {
-    class DSEvaluationUnitTest : DynamoUnitTest
+    public class DSEvaluationUnitTest : DynamoUnitTest
     {
         public void OpenModel(string relativeFilePath)
         {
@@ -24,6 +24,11 @@ namespace Dynamo.Tests
         public void RunModel(string relativeDynFilePath)
         {
             OpenModel(relativeDynFilePath);
+            Assert.DoesNotThrow(() => Controller.RunExpression(null));
+        }
+
+        public void RunCurrentModel() // Run currently loaded model.
+        {
             Assert.DoesNotThrow(() => Controller.RunExpression(null));
         }
 
@@ -124,7 +129,7 @@ namespace Dynamo.Tests
             else if (value is int)
                 Assert.AreEqual((int)value, Convert.ToInt32(data.Data));
             else if (value is double)
-                Assert.IsTrue(Math.Abs((double)value - Convert.ToDouble(data.Data)) < 0.00001);
+                Assert.AreEqual((double)value, Convert.ToDouble(data.Data), 0.00001);
             else
                 Assert.AreEqual(value, data.Data);
         }
@@ -140,7 +145,6 @@ namespace Dynamo.Tests
             }
         }
 
-        [TearDown]
         public override void Cleanup()
         {
             GraphToDSCompiler.GraphUtilities.Reset();
@@ -166,7 +170,7 @@ namespace Dynamo.Tests
             // 2; ----> y Point.ByCoordinates(x, y, z);
             // 3; ----> z
             RunModel(@"core\dsevaluation\regress561.dyn");
-            AssertClassName("8774296c-5269-450b-959d-ce4020ddbf80", "Point");
+            AssertClassName("8774296c-5269-450b-959d-ce4020ddbf80", "Autodesk.DesignScript.Geometry.Point");
         }
 
         [Test]

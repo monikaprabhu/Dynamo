@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using CSMath = System.Math;
 
@@ -9,7 +8,7 @@ namespace DSCore
     /// <summary>
     /// Methods for performing Mathematical operations.
     /// </summary>
-    public class Math
+    public static class Math
     {
         /// <summary>
         /// Generates a random double in the range of [0, 1).
@@ -53,7 +52,8 @@ namespace DSCore
         /// <param name="numbers">List of numbers to be averaged.</param>
         public static double Average(IList numbers)
         {
-            return numbers.Cast<double>().Average();
+            return (numbers.OfType<double>().Cast<double>().Sum() + 
+                numbers.OfType<int>().Cast<int>().Sum()) / numbers.Cast<object>().Count();
         }
 
         /// <summary>

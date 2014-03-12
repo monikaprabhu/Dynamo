@@ -16,6 +16,24 @@ namespace Revit.GeometryConversion
         #region Proto -> Revit types
 
         /// <summary>
+        /// Convert a Revit BoundingBox to a ProtoGeometry BoundingBox
+        /// </summary>
+        /// <returns></returns>
+        public static Autodesk.Revit.DB.BoundingBoxXYZ ToRevitType(this Autodesk.DesignScript.Geometry.BoundingBox bb)
+        {
+            var rbb = new BoundingBoxXYZ();
+            rbb.Enabled = true;
+
+            // placeholder until we can get coordinate system from bounding box
+            rbb.Transform = Transform.Identity;
+
+            rbb.Max = bb.MaxPoint.ToXyz();
+            rbb.Min = bb.MinPoint.ToXyz();
+
+            return rbb;
+        }
+
+        /// <summary>
         /// Convert a Point to an XYZ
         /// </summary>
         /// <param name="pt"></param>
@@ -141,6 +159,17 @@ namespace Revit.GeometryConversion
         #region Revit -> Proto types
 
         /// <summary>
+        /// Convert a Revit BoundingBox to a ProtoGeometry BoundingBox
+        /// </summary>
+        /// <returns></returns>
+        public static Autodesk.DesignScript.Geometry.BoundingBox ToProtoType(this Autodesk.Revit.DB.BoundingBoxXYZ xyz)
+        {
+            xyz.Enabled = true;
+            var corners = new[] {xyz.Min.ToPoint(), xyz.Max.ToPoint()};
+            return Autodesk.DesignScript.Geometry.BoundingBox.ByGeometry(corners);
+        }
+
+        /// <summary>
         /// Convert an XYZ to a Point
         /// </summary>
         /// <param name="xyz"></param>
@@ -190,6 +219,37 @@ namespace Revit.GeometryConversion
         public static List<Autodesk.DesignScript.Geometry.Point> ToPoints(this List<XYZ> list)
         {
             return list.ConvertAll((x) => Autodesk.DesignScript.Geometry.Point.ByCoordinates(x.X, x.Y, x.Z));
+        }
+
+        #endregion
+
+        #region Degrees, radians
+
+        public static double ToRadians(this double degrees)
+        {
+            return degrees*Math.PI/180.0;
+        }
+
+        public static double ToDegrees(this double degrees)
+        {
+            return degrees * 180.0 / Math.PI;
+        }
+
+        #endregion
+
+        #region X&UZ
+
+        public static XYZ GetParallel(this XYZ xyz)
+        {
+            var ixn = xyz.Normalize();
+            var xn = new XYZ(1, 0, 0);
+
+            if (ixn.IsAlmostEqualTo(xn))
+            {
+                xn = new XYZ(0,1,0);
+            }
+
+            return ixn.CrossProduct(xn);
         }
 
         #endregion

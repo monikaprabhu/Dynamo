@@ -150,10 +150,15 @@ namespace Dynamo.Nodes
 
         private void WorkbookOnBeforeClose(ref bool cancel)
         {
-            this.isDirty = true;
-            this.MarkDirty();
+            RequiresRecalc = true;
         }
-        
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "DSOffice.dll", "Excel.NewExcelWorkbook",
+                "Excel.NewExcelWorkbook");
+        }
     }
 
     [NodeName("Open Excel Workbook")]
@@ -193,10 +198,15 @@ namespace Dynamo.Nodes
 
         private void WorkbookOnBeforeClose(ref bool cancel)
         {
-            this.isDirty = true;
-            this.MarkDirty();
+            RequiresRecalc = true;
         }
 
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "DSOffice.dll", "Excel.ReadExcelFile",
+                "Excel.ReadExcelFile@string");
+        }
     }
 
     [NodeName("Get Worksheets From Excel Workbook")]
@@ -220,6 +230,12 @@ namespace Dynamo.Nodes
             return FScheme.Value.NewList(Utils.SequenceToFSharpList(l));
         }
 
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "DSOffice.dll", "Excel.GetWorksheetsFromExcelWorkbook",
+                "Excel.GetWorksheetsFromExcelWorkbook@var");
+        }
     }
 
     [NodeName("Get Excel Worksheet By Name")]
@@ -250,6 +266,12 @@ namespace Dynamo.Nodes
             return FScheme.Value.NewContainer(sheet);
         }
 
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "DSOffice.dll", "Excel.GetExcelWorksheetByName",
+                "Excel.GetExcelWorksheetByName@var,string");
+        }
     }
 
     [NodeName("Get Data From Excel Worksheet")]
@@ -312,6 +334,12 @@ namespace Dynamo.Nodes
                 : FScheme.Value.NewString(element.ToString());
         }
 
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "DSOffice.dll", "Excel.GetDataFromExcelWorksheet",
+                "Excel.GetDataFromExcelWorksheet@var");
+        }
     }
 
     [NodeName("Write Data To Excel Worksheet")]
@@ -432,6 +460,12 @@ namespace Dynamo.Nodes
             return FScheme.Value.NewContainer(worksheet);
         }
 
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "DSOffice.dll", "Excel.WriteDataToExcelWorksheet",
+                "Excel.WriteDataToExcelWorksheet@var,int,int,var[][]");
+        }
     }
 
     [NodeName("Add Excel Worksheet To Workbook")]
@@ -461,6 +495,12 @@ namespace Dynamo.Nodes
             return FScheme.Value.NewContainer(worksheet);
         }
 
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "DSOffice.dll", "Excel.AddExcelWorksheetToWorkbook",
+                "Excel.AddExcelWorksheetToWorkbook@var,string");
+        }
     }
 
     [NodeName("Save Excel Workbook As")]
@@ -468,7 +508,6 @@ namespace Dynamo.Nodes
     [NodeDescription("Write an Excel Workbook to a file with the given filename.  \n\nThis node requires Microsoft Excel to be installed.")]
     public class SaveAsExcelWorkbook : NodeWithOneOutput
     {
-
         public SaveAsExcelWorkbook()
         {
             InPortData.Add(new PortData("workbook", "The Excel Workbook to save", typeof(FScheme.Value.Container)));
@@ -477,15 +516,6 @@ namespace Dynamo.Nodes
             OutPortData.Add(new PortData("workbook", "The Excel Workbook", typeof(FScheme.Value.Container)));
 
             RegisterAllPorts();
-        }
-
-        public override bool RequiresRecalc
-        {
-            get { return true; }
-            set
-            {
-
-            }
         }
 
         public override FScheme.Value Evaluate(FSharpList<FScheme.Value> args)
@@ -505,5 +535,11 @@ namespace Dynamo.Nodes
             return FScheme.Value.NewContainer(wb);
         }
 
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "DSOffice.dll", "Excel.SaveAsExcelWorkbook",
+                "Excel.SaveAsExcelWorkbook@var,string");
+        }
     }
 }

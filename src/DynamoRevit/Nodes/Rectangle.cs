@@ -39,10 +39,10 @@ namespace Dynamo.Nodes
             p2 = t.OfPoint(p2);
             p3 = t.OfPoint(p3);
 
-            var l1 = DocumentManager.GetInstance().CurrentUIDocument.Application.Application.Create.NewLineBound(p0, p1);
-            var l2 = DocumentManager.GetInstance().CurrentUIDocument.Application.Application.Create.NewLineBound(p1, p2);
-            var l3 = DocumentManager.GetInstance().CurrentUIDocument.Application.Application.Create.NewLineBound(p2, p3);
-            var l4 = DocumentManager.GetInstance().CurrentUIDocument.Application.Application.Create.NewLineBound(p3, p0);
+            var l1 = DocumentManager.Instance.CurrentUIDocument.Application.Application.Create.NewLineBound(p0, p1);
+            var l2 = DocumentManager.Instance.CurrentUIDocument.Application.Application.Create.NewLineBound(p1, p2);
+            var l3 = DocumentManager.Instance.CurrentUIDocument.Application.Application.Create.NewLineBound(p2, p3);
+            var l4 = DocumentManager.Instance.CurrentUIDocument.Application.Application.Create.NewLineBound(p3, p0);
 
             var cl = new Autodesk.Revit.DB.CurveLoop();
             cl.Append(l1);
@@ -51,6 +51,13 @@ namespace Dynamo.Nodes
             cl.Append(l4);
 
             return FScheme.Value.NewContainer(cl);
+        }
+
+        [NodeMigration(from: "0.6.3.0", to: "0.7.0.0")]
+        public static NodeMigrationData Migrate_0630_to_0700(NodeMigrationData data)
+        {
+            return MigrateToDsFunction(data, "ProtoGeometry.dll", "Rectangle.ByWidthHeight", 
+                "Rectangle.ByWidthHeight@CoordinateSystem,double,double");
         }
     }
 }

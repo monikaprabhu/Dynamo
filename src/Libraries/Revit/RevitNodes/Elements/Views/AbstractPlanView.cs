@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using Autodesk.Revit.DB;
@@ -10,6 +11,7 @@ namespace Revit.Elements
     /// <summary>
     /// Base class for Revit Plan views
     /// </summary>
+    [Browsable(false)]
     public class AbstractPlanView : AbstractView
     {
 
@@ -53,7 +55,7 @@ namespace Revit.Elements
 
         protected static ViewPlan CreatePlanView(Autodesk.Revit.DB.Level level, Autodesk.Revit.DB.ViewFamily planType)
         {
-            var viewFam = DocumentManager.GetInstance().ElementsOfType<ViewFamilyType>()
+            var viewFam = DocumentManager.Instance.ElementsOfType<ViewFamilyType>()
                 .FirstOrDefault(x => x.ViewFamily == planType);
 
             if (viewFam == null)

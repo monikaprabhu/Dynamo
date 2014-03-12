@@ -110,8 +110,24 @@ namespace Dynamo.Nodes
         public List<string> GetDefinedVariableNames()
         {
             var defVarNames = new List<string>();
+            
+            // For unbound identifier, if there is an input connect to it,
+            // it is defined variable. 
+            for (int i = 0; i < inputIdentifiers.Count; i++)
+            {
+                var unboundIdentifier = inputIdentifiers[i];
+                if (this.Inputs.ContainsKey(i))
+                {
+                    defVarNames.Add(unboundIdentifier);
+                }
+            }
+
+            // Then get all variabled on the LHS of the statements
             foreach (Statement stmnt in codeStatements)
+            {
                 defVarNames.AddRange(Statement.GetDefinedVariableNames(stmnt, true));
+            }
+
             return defVarNames;
         }
 
@@ -382,8 +398,6 @@ namespace Dynamo.Nodes
 
         private void ProcessCode(ref string errorMessage)
         {
-            Style windowStyle = Dynamo.UI.SharedDictionaryManager.DynamoModernDictionary["DynamoWindowStyle"] as Style;
-            var textFontFamily = windowStyle.Setters;
             //Format user test
             code = FormatUserText(code);
 
@@ -399,8 +413,8 @@ namespace Dynamo.Nodes
             codeToParse = code;
             List<string> unboundIdentifiers = new List<string>();
             List<ProtoCore.AST.Node> parsedNodes;
-            List<ProtoCore.BuildData.ErrorEntry> errors;
-            List<ProtoCore.BuildData.WarningEntry> warnings;
+            IEnumerable<ProtoCore.BuildData.ErrorEntry> errors;
+            IEnumerable<ProtoCore.BuildData.WarningEntry> warnings;
 
             try
             {
@@ -423,25 +437,29 @@ namespace Dynamo.Nodes
                     else
                         previewVariable = null;
                 }
-                else
-                {
-                    if (errors == null)
-                    {
-                        ProcessError();
-                        errorMessage = "Errors not getting sent from compiler to UI";
-                    }
 
-                    //Found errors. Get the error message strings and use it to call the DisplayError function
-                    if (errors != null)
-                    {
-                        errorMessage = "";
-                        int i = 0;
-                        for (; i < errors.Count - 1; i++)
-                            errorMessage += (errors[i].Message + "\n");
-                        errorMessage += errors[i].Message;
-                        ProcessError();
-                    }
+                if (errors != null && errors.Any())
+                {
+                    errorMessage = string.Join("\n", errors.Select(m => m.Message));
+                    ProcessError();
                     return;
+                }
+
+                if (warnings != null)
+                {
+                    // Unbound identifiers in CBN will have input slots.
+                    // 
+                    // To check function redefinition, we need to check other
+                    // CBN to find out if it has been defined yet. Now just
+                    // skip thsi warning.
+                    warnings = warnings.Where(w => w.ID != WarningID.kIdUnboundIdentifier
+                                                && w.ID != WarningID.kFunctionAlreadyDefined);
+                    if (warnings.Any())
+                    {
+                        errorMessage = string.Join("\n", warnings.Select(m => m.Message));
+                        ProcessError();
+                        return;
+                    }
                 }
             }
             catch (Exception e)
@@ -828,7 +846,7 @@ namespace Dynamo.Nodes
         /// <returns> Returns the extra number of lines caused by text wrapping. For example, the above statement would return 1 </returns>
         private int GetExtraLinesDueToTextWrapping(string statement)
         {
-            double portHeight = (double)Dynamo.UI.SharedDictionaryManager.DynamoModernDictionary["port_height"] - 0.1;
+            double portHeight = Configurations.PortHeight - 0.1;
             int numberOfLines = 0;
             string[] lines = statement.Split('\n');
             foreach (string line in lines)
@@ -848,45 +866,15 @@ namespace Dynamo.Nodes
         /// <returns> The line height of the formatted string </returns>
         private double GetFormattedTextHeight(string str)
         {
-            FontFamily textFontFamily = null;
-            double textFontSize = -1.0;
-            try
-            {
-                Style windowStyle = Dynamo.UI.SharedDictionaryManager.DynamoModernDictionary["DynamoWindowStyle"] as Style;
-                var styleSetters = windowStyle.Setters;
-                foreach (System.Windows.Setter setter in styleSetters)
-                {
-                    if (setter.Property.Name == "FontFamily")
-                    {
-                        textFontFamily = setter.Value as FontFamily;
-                        break;
-                    }
-                }
-
-                Style codeBlockNodeStyle = Dynamo.UI.SharedDictionaryManager.DynamoModernDictionary["CodeBlockNodeTextBox"] as Style;
-                styleSetters = codeBlockNodeStyle.Setters;
-                foreach (System.Windows.Setter setter in styleSetters)
-                {
-                    if (setter.Property.Name == "FontSize")
-                    {
-                        textFontSize = (double)setter.Value;
-                        break;
-                    }
-                }
-
-                if (textFontSize == -1.0 || textFontFamily == null)
-                    throw new Exception("Resource Setter not found");
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            FontFamily textFontFamily = new FontFamily(
+                new Uri("/DynamoCore;component/"),
+                ResourceNames.FontResourceUri);
 
             FormattedText newText = new FormattedText(str,
                     CultureInfo.CurrentCulture,
                     System.Windows.FlowDirection.LeftToRight,
                     new Typeface(textFontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Arial")),
-                    textFontSize,
+                    Configurations.CBNFontSize,
                     new SolidColorBrush());
 
             newText.MaxTextWidth = Configurations.CBNMaxTextBoxWidth;

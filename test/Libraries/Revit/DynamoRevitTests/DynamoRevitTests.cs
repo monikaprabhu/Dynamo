@@ -52,8 +52,8 @@ namespace Dynamo.Tests
 
             _emptyModelPath = Path.Combine(_testPath, "empty.rfa");
 
-            if (DocumentManager.GetInstance().CurrentUIApplication.Application.VersionNumber.Contains("2014") &&
-                DocumentManager.GetInstance().CurrentUIApplication.Application.VersionName.Contains("Vasari"))
+            if (DocumentManager.Instance.CurrentUIApplication.Application.VersionNumber.Contains("2014") &&
+                DocumentManager.Instance.CurrentUIApplication.Application.VersionName.Contains("Vasari"))
             {
                 _emptyModelPath = Path.Combine(_testPath, "emptyV.rfa");
                 _emptyModelPath1 = Path.Combine(_testPath, "emptyV1.rfa");
@@ -69,18 +69,13 @@ namespace Dynamo.Tests
         {
             try
             {
-                var units = new UnitsManager
-                {
-                    HostApplicationInternalAreaUnit = DynamoAreaUnit.SquareFoot,
-                    HostApplicationInternalLengthUnit = DynamoLengthUnit.DecimalFoot,
-                    HostApplicationInternalVolumeUnit = DynamoVolumeUnit.CubicFoot
-                };
+                SIUnit.HostApplicationInternalAreaUnit = DynamoAreaUnit.SquareFoot;
+                SIUnit.HostApplicationInternalLengthUnit = DynamoLengthUnit.DecimalFoot;
+                SIUnit.HostApplicationInternalVolumeUnit = DynamoVolumeUnit.CubicFoot;
 
                 //create a new instance of the ViewModel
-                Controller = new DynamoController(new ExecutionEnvironment(), typeof (DynamoViewModel), Context.NONE, new UpdateManager.UpdateManager(), units, new DefaultWatchHandler(), new PreferenceSettings())
-                    {
-                        Testing = true
-                    };
+                Controller = new DynamoController(typeof (DynamoViewModel), Context.NONE, new UpdateManager.UpdateManager(), new DefaultWatchHandler(), new PreferenceSettings());
+                DynamoController.IsTestMode = true;
             }
             catch (Exception ex)
             {
@@ -96,19 +91,19 @@ namespace Dynamo.Tests
         protected void CreateTwoModelCurves(out ModelCurve mc1, out ModelCurve mc2)
         {
             //create two model curves 
-            using (_trans = _trans = new Transaction(DocumentManager.GetInstance().CurrentUIDocument.Document, "CreateTwoModelCurves"))
+            using (_trans = _trans = new Transaction(DocumentManager.Instance.CurrentUIDocument.Document, "CreateTwoModelCurves"))
             {
                 _trans.Start();
 
                 Plane p1 = new Plane(XYZ.BasisZ, XYZ.Zero);
                 Plane p2 = new Plane(XYZ.BasisZ, new XYZ(0, 0, 5));
 
-                SketchPlane sp1 = DocumentManager.GetInstance().CurrentUIDocument.Document.FamilyCreate.NewSketchPlane(p1);
-                SketchPlane sp2 = DocumentManager.GetInstance().CurrentUIDocument.Document.FamilyCreate.NewSketchPlane(p2);
-                Curve c1 = DocumentManager.GetInstance().CurrentUIApplication.Application.Create.NewLineBound(XYZ.Zero, new XYZ(1, 0, 0));
-                Curve c2 = DocumentManager.GetInstance().CurrentUIApplication.Application.Create.NewLineBound(new XYZ(0, 0, 5), new XYZ(1, 0, 5));
-                mc1 = DocumentManager.GetInstance().CurrentUIDocument.Document.FamilyCreate.NewModelCurve(c1, sp1);
-                mc2 = DocumentManager.GetInstance().CurrentUIDocument.Document.FamilyCreate.NewModelCurve(c2, sp2);
+                SketchPlane sp1 = DocumentManager.Instance.CurrentUIDocument.Document.FamilyCreate.NewSketchPlane(p1);
+                SketchPlane sp2 = DocumentManager.Instance.CurrentUIDocument.Document.FamilyCreate.NewSketchPlane(p2);
+                Curve c1 = DocumentManager.Instance.CurrentUIApplication.Application.Create.NewLineBound(XYZ.Zero, new XYZ(1, 0, 0));
+                Curve c2 = DocumentManager.Instance.CurrentUIApplication.Application.Create.NewLineBound(new XYZ(0, 0, 5), new XYZ(1, 0, 5));
+                mc1 = DocumentManager.Instance.CurrentUIDocument.Document.FamilyCreate.NewModelCurve(c1, sp1);
+                mc2 = DocumentManager.Instance.CurrentUIDocument.Document.FamilyCreate.NewModelCurve(c2, sp2);
 
                 _trans.Commit();
             }
@@ -121,15 +116,15 @@ namespace Dynamo.Tests
         protected void CreateOneModelCurve(out ModelCurve mc1)
         {
             //create two model curves 
-            using (_trans = _trans = new Transaction(DocumentManager.GetInstance().CurrentUIDocument.Document, "CreateTwoModelCurves"))
+            using (_trans = _trans = new Transaction(DocumentManager.Instance.CurrentUIDocument.Document, "CreateTwoModelCurves"))
             {
                 _trans.Start();
 
                 Plane p1 = new Plane(XYZ.BasisZ, XYZ.Zero);
 
-                SketchPlane sp1 = DocumentManager.GetInstance().CurrentUIDocument.Document.FamilyCreate.NewSketchPlane(p1);
-                Curve c1 = DocumentManager.GetInstance().CurrentUIApplication.Application.Create.NewLineBound(XYZ.Zero, new XYZ(1, 0, 0));
-                mc1 = DocumentManager.GetInstance().CurrentUIDocument.Document.FamilyCreate.NewModelCurve(c1, sp1);
+                SketchPlane sp1 = DocumentManager.Instance.CurrentUIDocument.Document.FamilyCreate.NewSketchPlane(p1);
+                Curve c1 = DocumentManager.Instance.CurrentUIApplication.Application.Create.NewLineBound(XYZ.Zero, new XYZ(1, 0, 0));
+                mc1 = DocumentManager.Instance.CurrentUIDocument.Document.FamilyCreate.NewModelCurve(c1, sp1);
 
                 _trans.Commit();
             }
@@ -140,8 +135,8 @@ namespace Dynamo.Tests
         /// </summary>
         protected void SwapCurrentModel(string modelPath)
         {
-            Document initialDoc = DocumentManager.GetInstance().CurrentUIDocument.Document;
-            DocumentManager.GetInstance().CurrentUIApplication.OpenAndActivateDocument(modelPath);
+            Document initialDoc = DocumentManager.Instance.CurrentUIDocument.Document;
+            DocumentManager.Instance.CurrentUIApplication.OpenAndActivateDocument(modelPath);
             initialDoc.Close(false);
         }
 

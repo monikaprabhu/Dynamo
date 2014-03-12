@@ -13,6 +13,17 @@ using ArrayNode = ProtoCore.AST.AssociativeAST.ArrayNode;
 
 namespace Dynamo.Nodes
 {
+    public class UnresolvedFunctionException : Exception
+    {
+        public UnresolvedFunctionException(string functionName)
+            : base("Cannot find function: " + functionName)
+        {
+            this.FunctionName = functionName;
+        }
+
+        public string FunctionName { get; private set; }
+    }
+
     /// <summary>
     /// DesignScript function node. All functions from DesignScript share the
     /// same function node but internally have different procedure.
@@ -44,20 +55,26 @@ namespace Dynamo.Nodes
             return Definition.Type == FunctionType.Constructor;
         }
 
-        public DSFunction() { }
+        public DSFunction() 
+        {
+            ArgumentLacing = LacingStrategy.Shortest;
+        }
 
         public DSFunction(FunctionDescriptor definition)
         {
+            ArgumentLacing = LacingStrategy.Shortest;
             Definition = definition;
             Initialize();
         }
 
         public override string Description
         {
-            get
-            {
-                return Definition.Signature;
-            }
+            get { return Definition.Description; }
+        }
+
+        public override string Category
+        {
+            get { return Definition.Category; }
         }
 
         public override bool IsConvertible
@@ -65,20 +82,6 @@ namespace Dynamo.Nodes
             get
             {
                 return true;
-            }
-        }
-
-        public override bool RequiresRecalc
-        {
-            get
-            {
-                return
-                    Inputs.Values.Where(x => x != null)
-                          .Any(x => x.Item2.isDirty || x.Item2.RequiresRecalc);
-            }
-            set
-            {
-                base.RequiresRecalc = value;
             }
         }
 
@@ -100,8 +103,8 @@ namespace Dynamo.Nodes
                 {
                     InPortData.Add(
                          new PortData(
-                             arg.Parameter,
-                             string.IsNullOrEmpty(arg.Type) ? "var" : arg.Type,
+                             arg.Name,
+                             arg.Description,
                              typeof(object),
                              arg.DefaultValue));
                 }
@@ -192,7 +195,7 @@ namespace Dynamo.Nodes
 
             if (null == Definition)
             {
-                throw new Exception("Cannot find function: " + function);
+                throw new UnresolvedFunctionException(function);
             }
 
             Initialize();
@@ -219,14 +222,14 @@ namespace Dynamo.Nodes
         {
             return Enumerable.Range(0, InPortData.Count)
                              .Where(x => this.HasConnectedInput(x))
-                             .Select(x => new IntNode(x.ToString()) as AssociativeNode)
+                             .Select(x => new IntNode(x) as AssociativeNode)
                              .ToList();
         }
 
         private AssociativeNode CreateFunctionObject(AssociativeNode functionNode, 
                                                      List<AssociativeNode> inputs)
         {
-            var paramNumNode = new IntNode(Definition.Parameters.Count().ToString());
+            var paramNumNode = new IntNode(Definition.Parameters.Count());
             var positionNode = AstFactory.BuildExprList(GetConnectedInputs());
             var arguments = AstFactory.BuildExprList(inputs);
             var inputParams = new List<AssociativeNode>() { functionNode, 
@@ -235,6 +238,46 @@ namespace Dynamo.Nodes
                                                             arguments };
 
             return AstFactory.BuildFunctionCall("_SingleFunctionObject", inputParams);
+        }
+
+        /// <summary>
+        /// Apppend replication guide to the input parameter based on lacing
+        /// strategy.
+        /// </summary>
+        /// <param name="inputs"></param>
+        /// <returns></returns>
+        private void AppendReplicationGuides(List<AssociativeNode> inputs)
+        {
+            if (ArgumentLacing == null || inputs == null || inputs.Count() == 0)
+            {
+                return;
+            }
+
+            switch (ArgumentLacing)
+            {
+                case LacingStrategy.CrossProduct:
+
+                    int guide = 1;
+                    for (int i = 0; i < inputs.Count(); ++i)
+                    {
+                        if (inputs[i] is ArrayNameNode)
+                        {
+                            var astNode = NodeUtils.Clone(inputs[i]) as ArrayNameNode;
+                            astNode.ReplicationGuides = new List<AssociativeNode>();
+
+                            var guideNode = new ReplicationGuideNode();
+                            guideNode.RepGuide = AstFactory.BuildIdentifier(guide.ToString());
+
+                            astNode.ReplicationGuides.Add(guideNode);
+                            inputs[i] = astNode;
+                            guide++;
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
         }
 
         internal override IEnumerable<AssociativeNode> BuildAst(List<AssociativeNode> inputAstNodes)
@@ -257,6 +300,7 @@ namespace Dynamo.Nodes
                     }
                     else
                     {
+                        AppendReplicationGuides(inputAstNodes);
                         rhs = AstFactory.BuildFunctionCall(Definition.ClassName,
                                                            Definition.Name,
                                                            inputAstNodes);
@@ -296,6 +340,8 @@ namespace Dynamo.Nodes
                 case FunctionType.InstanceMethod:
 
                     rhs = new NullNode();
+                    AppendReplicationGuides(inputAstNodes);
+
                     if (inputAstNodes != null && inputAstNodes.Count >= 1)
                     {
                         var thisNode = inputAstNodes[0];
@@ -322,6 +368,7 @@ namespace Dynamo.Nodes
                     }
                     else
                     {
+                        AppendReplicationGuides(inputAstNodes);
                         rhs = AstFactory.BuildFunctionCall(function, inputAstNodes);
                     }
                     break;
@@ -403,7 +450,9 @@ namespace Dynamo.Nodes
             return Definition.Type == FunctionType.Constructor;
         }
 
-        public DSVarArgFunction() { }
+        // A 'DSVarArgFunction' function cannot live without its 'Definition'
+        // (a 'FunctionDescriptor'), therefore this constructor shouldn't be used.
+        private DSVarArgFunction() { }
 
         public DSVarArgFunction(FunctionDescriptor definition)
         {
@@ -427,20 +476,6 @@ namespace Dynamo.Nodes
             }
         }
 
-        public override bool RequiresRecalc
-        {
-            get
-            {
-                return
-                    Inputs.Values.Where(x => x != null)
-                          .Any(x => x.Item2.isDirty || x.Item2.RequiresRecalc);
-            }
-            set
-            {
-                base.RequiresRecalc = value;
-            }
-        }
-
         /// <summary>
         /// Initialize a DS function node.
         /// </summary>
@@ -457,7 +492,7 @@ namespace Dynamo.Nodes
                 {
                     InPortData.Add(
                          new PortData(
-                             arg.Parameter,
+                             arg.Name,
                              string.IsNullOrEmpty(arg.Type) ? "var" : arg.Type,
                              typeof(object),
                              arg.DefaultValue));
@@ -486,7 +521,7 @@ namespace Dynamo.Nodes
 
         protected override string GetInputName(int index)
         {
-            return Definition.Parameters.Last().Parameter.TrimEnd('s') + index;
+            return Definition.Parameters.Last().Name.TrimEnd('s') + index;
         }
 
         protected override string GetInputTooltip(int index)
@@ -591,14 +626,14 @@ namespace Dynamo.Nodes
         {
             return Enumerable.Range(0, InPortData.Count)
                              .Where(HasConnectedInput)
-                             .Select(x => new IntNode(x.ToString()) as AssociativeNode)
+                             .Select(x => new IntNode(x) as AssociativeNode)
                              .ToList();
         }
 
         private AssociativeNode CreateFunctionObject(
             AssociativeNode functionNode, List<AssociativeNode> inputs)
         {
-            var paramNumNode = new IntNode(Definition.Parameters.Count().ToString());
+            var paramNumNode = new IntNode(Definition.Parameters.Count());
             var positionNode = AstFactory.BuildExprList(GetConnectedInputs());
             var arguments = AstFactory.BuildExprList(inputs);
             var inputParams = new List<AssociativeNode>

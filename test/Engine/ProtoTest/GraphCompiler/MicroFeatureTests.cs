@@ -35,7 +35,7 @@ namespace ProtoTest.GraphCompiler
             // Build the AST trees
             ProtoCore.AST.AssociativeAST.BinaryExpressionNode assign = new ProtoCore.AST.AssociativeAST.BinaryExpressionNode(
                 new ProtoCore.AST.AssociativeAST.IdentifierNode("a"),
-                new ProtoCore.AST.AssociativeAST.IntNode("10"),
+                new ProtoCore.AST.AssociativeAST.IntNode(10),
                 ProtoCore.DSASM.Operator.assign);
             List<ProtoCore.AST.AssociativeAST.AssociativeNode> astList = new List<ProtoCore.AST.AssociativeAST.AssociativeNode>();
             astList.Add(assign);
@@ -55,8 +55,8 @@ namespace ProtoTest.GraphCompiler
             ProtoCore.AST.AssociativeAST.BinaryExpressionNode assign = new ProtoCore.AST.AssociativeAST.BinaryExpressionNode(
                 new ProtoCore.AST.AssociativeAST.IdentifierNode("a"),
                 new ProtoCore.AST.AssociativeAST.BinaryExpressionNode(
-                    new ProtoCore.AST.AssociativeAST.IntNode("10"),
-                    new ProtoCore.AST.AssociativeAST.IntNode("20"),
+                    new ProtoCore.AST.AssociativeAST.IntNode(10),
+                    new ProtoCore.AST.AssociativeAST.IntNode(20),
                     ProtoCore.DSASM.Operator.add),
                 ProtoCore.DSASM.Operator.assign);
             List<ProtoCore.AST.AssociativeAST.AssociativeNode> astList = new List<ProtoCore.AST.AssociativeAST.AssociativeNode>();
@@ -87,9 +87,9 @@ namespace ProtoTest.GraphCompiler
             ProtoCore.AST.AssociativeAST.FunctionCallNode constructorCall = new ProtoCore.AST.AssociativeAST.FunctionCallNode();
             constructorCall.Function = new ProtoCore.AST.AssociativeAST.IdentifierNode("ByCoordinates");
             List<ProtoCore.AST.AssociativeAST.AssociativeNode> listArgs = new List<ProtoCore.AST.AssociativeAST.AssociativeNode>();
-            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode("10.0"));
-            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode("10.0"));
-            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode("10.0"));
+            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode(10.0));
+            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode(10.0));
+            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode(10.0));
             constructorCall.FormalArguments = listArgs;
             ProtoCore.AST.AssociativeAST.FunctionDotCallNode dotCall = new ProtoCore.AST.AssociativeAST.FunctionDotCallNode("Point", constructorCall);
             //==============================================
@@ -150,9 +150,9 @@ namespace ProtoTest.GraphCompiler
             ProtoCore.AST.AssociativeAST.FunctionCallNode constructorCall = new ProtoCore.AST.AssociativeAST.FunctionCallNode();
             constructorCall.Function = new ProtoCore.AST.AssociativeAST.IdentifierNode("ByCoordinates");
             List<ProtoCore.AST.AssociativeAST.AssociativeNode> listArgs = new List<ProtoCore.AST.AssociativeAST.AssociativeNode>();
-            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode("10.0"));
-            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode("10.0"));
-            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode("10.0"));
+            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode(10.0));
+            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode(10.0));
+            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode(10.0));
             constructorCall.FormalArguments = listArgs;
             ProtoCore.AST.AssociativeAST.FunctionDotCallNode dotCall = new ProtoCore.AST.AssociativeAST.FunctionDotCallNode("Point", constructorCall);
             //==============================================
@@ -171,9 +171,9 @@ namespace ProtoTest.GraphCompiler
             ProtoCore.AST.AssociativeAST.FunctionCallNode functionCallTranslate = new ProtoCore.AST.AssociativeAST.FunctionCallNode();
             functionCallTranslate.Function = new ProtoCore.AST.AssociativeAST.IdentifierNode("Translate");
             listArgs = new List<ProtoCore.AST.AssociativeAST.AssociativeNode>();
-            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode("1.0"));
-            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode("2.0"));
-            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode("3.0"));
+            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode(1.0));
+            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode(2.0));
+            listArgs.Add(new ProtoCore.AST.AssociativeAST.DoubleNode(3.0));
             functionCallTranslate.FormalArguments = listArgs;
             ProtoCore.AST.AssociativeAST.FunctionDotCallNode dotCallTranslate = new ProtoCore.AST.AssociativeAST.FunctionDotCallNode("p", functionCallTranslate);
             //==============================================
@@ -226,7 +226,7 @@ namespace ProtoTest.GraphCompiler
              */
             ProtoCore.AST.AssociativeAST.BinaryExpressionNode assign1 = new ProtoCore.AST.AssociativeAST.BinaryExpressionNode(
                     new ProtoCore.AST.AssociativeAST.IdentifierNode("X"),
-                    new ProtoCore.AST.AssociativeAST.IntNode("10"),
+                    new ProtoCore.AST.AssociativeAST.IntNode(10),
                     ProtoCore.DSASM.Operator.assign);
             ProtoCore.AST.AssociativeAST.IdentifierNode returnExpr = new ProtoCore.AST.AssociativeAST.IdentifierNode("X");
             ProtoCore.AST.AssociativeAST.ReturnNode returnNode = new ProtoCore.AST.AssociativeAST.ReturnNode();
@@ -428,8 +428,8 @@ namespace ProtoTest.GraphCompiler
             ProtoCore.AST.AssociativeAST.FunctionCallNode funcCallT = new ProtoCore.AST.AssociativeAST.FunctionCallNode();
             funcCallT.Function = new ProtoCore.AST.AssociativeAST.IdentifierNode("f");
             List<ProtoCore.AST.AssociativeAST.AssociativeNode> listArgs2 = new List<ProtoCore.AST.AssociativeAST.AssociativeNode>();
-            listArgs2.Add(new ProtoCore.AST.AssociativeAST.IntNode("4"));
-            listArgs2.Add(new ProtoCore.AST.AssociativeAST.IntNode("5"));
+            listArgs2.Add(new ProtoCore.AST.AssociativeAST.IntNode(4));
+            listArgs2.Add(new ProtoCore.AST.AssociativeAST.IntNode(5));
             funcCallT.FormalArguments = listArgs2;
             funcDotCallNode = new ProtoCore.AST.AssociativeAST.FunctionDotCallNode("p", funcCallT);
             ProtoCore.AST.AssociativeAST.BinaryExpressionNode assignT = new ProtoCore.AST.AssociativeAST.BinaryExpressionNode(
@@ -600,53 +600,6 @@ namespace ProtoTest.GraphCompiler
             Assert.IsTrue(mmx.Equals("Edge between 'C' and 'A' introduces a cycle in the graph"));
         }
 
-        [Test, Ignore]
-        public void TestInputOutputInfo()
-        {
-            Dictionary<string, int> inputVariables = new Dictionary<string, int>();
-            Dictionary<int, string> outputLines = new Dictionary<int, string>();
-            List<ProtoCore.BuildData.WarningEntry> warningslist = new List<ProtoCore.BuildData.WarningEntry>();
-            List<string> errorslist = new List<string>();
-            GraphUtilities.GetInputOutputInfo(@"a = b + 2;
-//
-                c = 4 * z; 
-                d = 5*2;
-f=d+g+e;
-//            ", out warningslist, out errorslist, inputVariables, outputLines);
-            Assert.IsTrue(outputLines[5] == "f");
-            Assert.IsTrue(outputLines[4] == "d");
-            Assert.IsTrue(outputLines[3] == "c");
-            Assert.IsTrue(outputLines[1] == "a");
-            Assert.IsTrue(inputVariables["g"] == 5);
-            Assert.IsTrue(inputVariables["e"] == 5);
-            inputVariables.Clear();
-            outputLines.Clear();
-            warningslist.Clear();
-            errorslist.Clear();
-        }
-
-        [Test, Ignore]
-        public void TestInputOutputInfoForArrays1()
-        {
-            Dictionary<string, int> inputVariables = new Dictionary<string, int>(); Dictionary<int, string> outputLines = new Dictionary<int, string>();
-            List<ProtoCore.BuildData.WarningEntry> warningslist = new List<ProtoCore.BuildData.WarningEntry>();
-            List<string> errorslist = new List<string>();
-            GraphUtilities.GetInputOutputInfo(@"a = {1,2,3};
-//
-                a[0] = 10;
-                a[1] = 20;
-a[2] = 30;
-//            ", out warningslist, out errorslist, inputVariables, outputLines);
-            Assert.IsTrue(outputLines[5] == "a[2]");
-            Assert.IsTrue(outputLines[4] == "a[1]");
-            Assert.IsTrue(outputLines[3] == "a[0]");
-            Assert.IsTrue(outputLines[1] == "a");
-            Assert.IsTrue(inputVariables.Count == 0);
-            inputVariables.Clear();
-            outputLines.Clear();
-            warningslist.Clear();
-            errorslist.Clear();
-        }
 
         [Test, Ignore]
         public void TestDeltaExecution01()

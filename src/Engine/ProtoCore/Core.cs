@@ -85,6 +85,26 @@ namespace ProtoCore
 
     }
 
+    /// <summary>
+    /// Represents a single replication guide entity that is associated with an argument to a function
+    /// 
+    /// Given:
+    ///     a = f(i<1>, j<2L>)
+    ///     
+    ///     <1> and <2L> are each represented by a ReplicationGuide instance
+    ///     
+    /// </summary>
+    public class ReplicationGuide
+    {
+        public ReplicationGuide(int guide, bool longest)
+        {
+            this.guideNumber = guide;
+            this.isLongest = longest;
+        }
+
+        public int guideNumber { get; private set; }
+        public bool isLongest {get; private set;}
+    }
 
     public class InterpreterProperties
     {
@@ -129,7 +149,8 @@ namespace ProtoCore
             Verbose = false;
             DumpIL = false;
 
-            FullSSA = true;
+            GenerateSSA = true;
+            ExecuteSSA = true;
             GCTempVarsOnDebug = true;
 
             DumpFunctionResolverLogic = false;
@@ -176,7 +197,8 @@ namespace ProtoCore
 
         public bool DumpByteCode { get; set; }
         public bool DumpIL { get; private set; }
-        public bool FullSSA { get; set; }
+        public bool GenerateSSA { get; set; }
+        public bool ExecuteSSA { get; set; }
         public bool GCTempVarsOnDebug { get; set; }
         public bool Verbose { get; set; }
         public bool DumpOperatorToMethodByteCode { get; set; }
@@ -593,8 +615,8 @@ namespace ProtoCore
             }
         }
 
-        public void SetUpCallrForDebug(ProtoCore.Core core, ProtoCore.DSASM.Executive exec, ProcedureNode fNode, int pc, bool isBaseCall = false, 
-            ProtoCore.CallSite callsite = null, List<StackValue> arguments = null, List<List<int>> replicationGuides = null, ProtoCore.DSASM.StackFrame stackFrame = null,
+        public void SetUpCallrForDebug(ProtoCore.Core core, ProtoCore.DSASM.Executive exec, ProcedureNode fNode, int pc, bool isBaseCall = false,
+            ProtoCore.CallSite callsite = null, List<StackValue> arguments = null, List<List<ProtoCore.ReplicationGuide>> replicationGuides = null, ProtoCore.DSASM.StackFrame stackFrame = null,
             List<StackValue> dotCallDimensions = null, bool hasDebugInfo = false, bool isMember = false, StackValue? thisPtr = null)
         {
             //ProtoCore.DSASM.Executive exec = core.CurrentExecutive.CurrentDSASMExec;
@@ -662,8 +684,8 @@ namespace ProtoCore
                 {
                     core.DebugProps.InlineConditionOptions.isInlineConditional = true;
                     core.DebugProps.InlineConditionOptions.startPc = pc;
-                    
-                    core.DebugProps.InlineConditionOptions.endPc = FindEndPCForAssocGraphNode(pc, istream, fNode, exec.Properties.executingGraphNode, core.Options.FullSSA);
+
+                    core.DebugProps.InlineConditionOptions.endPc = FindEndPCForAssocGraphNode(pc, istream, fNode, exec.Properties.executingGraphNode, core.Options.ExecuteSSA);
 
 
                     core.DebugProps.InlineConditionOptions.instructionStream = core.RunningBlock;
@@ -823,7 +845,7 @@ namespace ProtoCore
                 istream = core.DSExecutable.instrStreamList[core.RunningBlock];
                 if (istream.language == Language.kAssociative)
                 {
-                    limit = FindEndPCForAssocGraphNode(pc, istream, fNode, graphNode, core.Options.FullSSA);
+                    limit = FindEndPCForAssocGraphNode(pc, istream, fNode, graphNode, core.Options.ExecuteSSA);
                     //Validity.Assert(limit != ProtoCore.DSASM.Constants.kInvalidIndex);
                 }
                 else if (istream.language == Language.kImperative)
@@ -944,11 +966,6 @@ namespace ProtoCore
             public RuntimeData.WarningID RuntimeId;
             public int Line;
             public int Col;
-
-            //public ErrorEntry()
-            //{
-
-            //}
         }
 
         public Dictionary<ulong, ulong> codeToLocation = new Dictionary<ulong, ulong>();
@@ -1071,7 +1088,7 @@ namespace ProtoCore
 
         // Cached replication guides for the current call. 
         // TODO Jun: Store this in the dynamic table node
-        public List<List<int>> replicationGuides;
+        public List<List<ProtoCore.ReplicationGuide>> replicationGuides;
 
         // if CompileToLib is true, this is used to output the asm instruction to the dsASM file
         // if CompilerToLib is false, this will be set to Console.Out
@@ -1116,6 +1133,13 @@ namespace ProtoCore
 
         // A list of graphnodes that contain a function call
         public List<AssociativeGraph.GraphNode> GraphNodeCallList { get; set; }
+
+        public int newEntryPoint { get; private set; }
+
+        public void SetNewEntryPoint(int pc)
+        {
+            newEntryPoint = pc;
+        }
 
         /// <summary>
         /// Sets the function to an inactive state where it can no longer be used by the front-end and backend
@@ -1170,6 +1194,7 @@ namespace ProtoCore
             }
         }
 
+        [Obsolete("This is only used in obsolete live runner")]
         public void LogErrorInGlobalMap(Core.ErrorType type, string msg, string fileName = null, int line = -1, int col = -1, 
             BuildData.WarningID buildId = BuildData.WarningID.kDefault, RuntimeData.WarningID runtimeId = RuntimeData.WarningID.kDefault)
         {
@@ -1429,7 +1454,7 @@ namespace ProtoCore
             // Comment Jun:
             // Disable SSA for the previous graphcompiler as it clashes with the way code recompilation behaves
             // SSA is enabled for the new graph strategy of delta compilation and execution
-            Options.FullSSA = false;
+            Options.GenerateSSA = false;
 
 
             //Initialize the function pointer table
@@ -1438,7 +1463,7 @@ namespace ProtoCore
             //Initialize the dynamic string table and dynamic function table
             DynamicVariableTable = new DSASM.DynamicVariableTable();
             DynamicFunctionTable = new DSASM.DynamicFunctionTable();
-            replicationGuides = new List<List<int>>();
+            replicationGuides = new List<List<ProtoCore.ReplicationGuide>>();
 
             ExceptionHandlingManager = new ExceptionHandlingManager();
             startPC = ProtoCore.DSASM.Constants.kInvalidIndex;
@@ -1586,7 +1611,7 @@ namespace ProtoCore
             //Initialize the dynamic string table and dynamic function table
             DynamicVariableTable = new DSASM.DynamicVariableTable();
             DynamicFunctionTable = new DSASM.DynamicFunctionTable();
-            replicationGuides = new List<List<int>>();
+            replicationGuides = new List<List<ProtoCore.ReplicationGuide>>();
 
             ExceptionHandlingManager = new ExceptionHandlingManager();
             startPC = ProtoCore.DSASM.Constants.kInvalidIndex;
@@ -1608,6 +1633,7 @@ namespace ProtoCore
             RuntimeStatus = new RuntimeStatus(this);
 
             SSASubscript = 0;
+            SSASubscript_GUID = System.Guid.NewGuid();
             ExpressionUID = 0;
             ModifierBlockUID = 0;
             ModifierStateSubscript = 0;
@@ -1659,11 +1685,15 @@ namespace ProtoCore
             ForLoopBlockIndex = ProtoCore.DSASM.Constants.kInvalidIndex;
 
             GraphNodeCallList = new List<GraphNode>();
+
+            newEntryPoint = ProtoCore.DSASM.Constants.kInvalidIndex;
         }
 
         // The unique subscript for SSA temporaries
         // TODO Jun: Organize these variables in core into proper enums/classes/struct
         public int SSASubscript { get; set; }
+        public Guid SSASubscript_GUID { get; set; }
+
         /// <summary> 
         /// ExpressionUID is used as the unique id to identify an expression
         /// It is incremented by 1 after mapping tis current value to an expression
@@ -2367,6 +2397,12 @@ namespace ProtoCore
                 }
             }
             return csInstance;
+        }
+
+        public void ResetSSASubscript(Guid guid, int subscript)
+        {
+            SSASubscript_GUID = guid;
+            SSASubscript = subscript;
         }
     }
 }

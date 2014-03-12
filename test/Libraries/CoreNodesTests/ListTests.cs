@@ -6,6 +6,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using NUnit.Framework;
 using DSCore;
+using Enum = Dynamo.Nodes.Enum;
 using List = DSCore.List;
 
 namespace DSCoreNodesTests
@@ -35,11 +36,13 @@ namespace DSCoreNodesTests
             Assert.AreEqual(new ArrayList { 5, 4, 3, 2, 1 }, List.Reverse(new List<int> { 1, 2, 3, 4, 5 }));
         }
 
+        /*
         [Test]
         public static void CreateList()
         {
             Assert.AreEqual(new ArrayList { 1, 2, 3, 4, 5 }, List.Create(1, 2, 3, 4, 5));
         }
+         * */
 
         [Test]
         public static void SortList()
@@ -87,6 +90,37 @@ namespace DSCoreNodesTests
             Assert.AreEqual(66, List.MaximumItem(new List<int> { 8, 4, 0, 66, 10 }));
         }
 
+        [Test]
+        public static void FilterListByMask()
+        {
+            Assert.AreEqual(
+                new Dictionary<string, object>
+                {
+                    { "in", new List<int> { 1, 3, 5 } },
+                    { "out", new List<int> { 2, 4, 6 } }
+                },
+                List.FilterByBoolMask(
+                    new List<int> { 1, 2, 3, 4, 5, 6 },
+                    new List<bool> { true, false, true, false, true, false }));
+
+            Assert.AreEqual(
+                new Dictionary<string, object>
+                {
+                    { "in", new List<object> { 1, 3, new List<object> { 5, 7 } } },
+                    { "out", new List<object> { 2, 4, new List<object> { 6, 8 } } }
+                },
+                List.FilterByBoolMask(
+                    new List<object> { 1, 2, 3, 4, new List<object> { 5, 6, 7, 8 } },
+                    new List<object>
+                    {
+                        true,
+                        false,
+                        true,
+                        false,
+                        new List<object> { true, false, true, false }
+                    }));
+        }
+
         //[Test]
         //public static void ListMaximumByKey()
         //{
@@ -126,9 +160,18 @@ namespace DSCoreNodesTests
         [Test]
         public static void SplitList()
         {
-            Assert.AreEqual(
-                new object[] { 0, new List<int> { 1, 2, 3, 4, 5 } },
-                List.Deconstruct(new List<int> { 0, 1, 2, 3, 4, 5 }));
+            var results = List.Deconstruct(new List<int> { 0, 1, 2, 3, 4, 5 });
+
+            // Explicitly test each aspect of the returned value.
+            Assert.IsNotNull(results);
+            Assert.AreEqual(2, results.Count);
+            Assert.AreEqual("first", results.Keys.ElementAt(0));
+            Assert.AreEqual("rest", results.Keys.ElementAt(1));
+            Assert.AreEqual(0, results["first"]);
+
+            var rest = results["rest"] as List<object>;
+            Assert.IsNotNull(rest);
+            Assert.AreEqual(new List<object> { 1, 2, 3, 4, 5 }, rest);
         }
 
         [Test]
@@ -254,33 +297,52 @@ namespace DSCoreNodesTests
         [Test]
         public static void ListDiagonalRight()
         {
-            var result = List.DiagonalRight(new ArrayList { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 2);
-            Console.WriteLine(result);
-
-            Assert.Inconclusive();
+            Assert.AreEqual(
+                new ArrayList
+                {
+                    new ArrayList { 15 }, 
+                    new ArrayList { 10, 16 }, 
+                    new ArrayList { 5, 11, 17, },
+                    new ArrayList { 0, 6, 12, 18 },
+                    new ArrayList { 1, 7, 13, 19 },
+                    new ArrayList { 2, 8, 14 },
+                    new ArrayList { 3, 9 },
+                    new ArrayList { 4 }
+                },
+                List.DiagonalRight(Enumerable.Range(0, 20).ToList(), 5));
         }
 
         [Test]
         public static void ListDiagonalLeft()
         {
             Assert.AreEqual(
-                new ArrayList { new ArrayList { 0 }, new ArrayList { 1, 2 }, new ArrayList { 3 }},
-                List.DiagonalLeft(new ArrayList { 0, 1, 2, 3}, 2));
+                new ArrayList
+                {
+                    new ArrayList { 0 }, 
+                    new ArrayList { 1, 5 }, 
+                    new ArrayList { 2, 6, 10, },
+                    new ArrayList { 3, 7, 11, 15 },
+                    new ArrayList { 4, 8, 12, 16 },
+                    new ArrayList { 9, 13, 17 },
+                    new ArrayList { 14, 18 },
+                    new ArrayList { 19 }
+                },
+                List.DiagonalLeft(Enumerable.Range(0, 20).ToList(), 5));
         }
 
-        [Test]
-        public static void TransposeListOfLists()
-        {
-            Assert.AreEqual(
-                new List<IList> { new ArrayList { 0, 3, 6 }, new ArrayList { 1, 4, 7 }, new ArrayList { 2, 5, 8 } },
-                List.Transpose(
-                    new List<IList<object>>
-                    {
-                        new List<object> { 0, 1, 2 },
-                        new List<object> { 3, 4, 5 },
-                        new List<object> { 6, 7, 8 }
-                    }));
-        }
+        //[Test]
+        //public static void TransposeListOfLists()
+        //{
+        //    Assert.AreEqual(
+        //        new List<IList> { new ArrayList { 0, 3, 6 }, new ArrayList { 1, 4, 7 }, new ArrayList { 2, 5, 8 } },
+        //        List.Transpose(
+        //            new List<IList<object>>
+        //            {
+        //                new List<object> { 0, 1, 2 },
+        //                new List<object> { 3, 4, 5 },
+        //                new List<object> { 6, 7, 8 }
+        //            }));
+        //}
 
         [Test]
         public static void RepeatObject()

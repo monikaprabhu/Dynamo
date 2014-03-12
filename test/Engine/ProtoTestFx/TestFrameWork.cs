@@ -5,6 +5,7 @@ using System.Text;
 using NUnit.Framework;
 using ProtoCore.DSASM.Mirror;
 using ProtoCore.Lang;
+using ProtoCore.Mirror;
 using ProtoCore.Utils;
 using ProtoFFI;
 using ProtoScript.Runners;
@@ -544,7 +545,7 @@ namespace ProtoTestFx.TD
 
         public static void VerifyBuildWarning(ProtoCore.BuildData.WarningID id)
         {
-            Assert.IsTrue(testCore.BuildStatus.ContainsWarning(id), mErrorMessage);
+            Assert.IsTrue(testCore.BuildStatus.Warnings.Any(w => w.ID == id), mErrorMessage);
         }
 
         public void VerifyBuildWarningCount(int count)
@@ -559,12 +560,12 @@ namespace ProtoTestFx.TD
 
         public static void VerifyRuntimeWarning(ProtoCore.Core core, ProtoCore.RuntimeData.WarningID id)
         {
-            Assert.IsTrue(core.RuntimeStatus.ContainsWarning(id), mErrorMessage);
+            Assert.IsTrue(core.RuntimeStatus.Warnings.Any(w => w.ID == id), mErrorMessage);
         }
 
         public void VerifyRuntimeWarningCount(int count)
         {
-            Assert.IsTrue(testCore.RuntimeStatus.Warnings.Count == count, mErrorMessage);
+            Assert.IsTrue(testCore.RuntimeStatus.WarningCount == count, mErrorMessage);
         }
 
         public void VerifyProperty(string dsVariable, string propertyName, object expectedValue, int startBlock = 0)
@@ -620,5 +621,40 @@ namespace ProtoTestFx.TD
             Assert.IsFalse(string.IsNullOrEmpty(str), string.Format("\"{0}\" is null, arrayIndex = {1}", dsVariable, arrayIndex));
 
         }
+
+
+        public static void AssertValue(string varname, object value, ILiveRunner liveRunner)
+        {
+            var mirror = liveRunner.InspectNodeValue(varname);
+            MirrorData data = mirror.GetData();
+            object svValue = data.Data;
+            if (value is double)
+            {
+                Assert.AreEqual((double)svValue, Convert.ToDouble(value));
+            }
+            else if (value is int)
+            {
+                Assert.AreEqual((Int64)svValue, Convert.ToInt64(value));
+            }
+            else if (value is bool)
+            {
+                Assert.AreEqual((bool)svValue, Convert.ToBoolean(value));
+            }
+            else if (value is IEnumerable<int>)
+            {
+                Assert.IsTrue(data.IsCollection);
+                var values = (value as IEnumerable<int>).ToList().Select(v => (object)v).ToList();
+                Assert.IsTrue(mirror.GetUtils().CompareArrays(varname, values, typeof(Int64)));
+            }
+            else if (value is IEnumerable<double>)
+            {
+                Assert.IsTrue(data.IsCollection);
+                var values = (value as IEnumerable<double>).ToList().Select(v => (object)v).ToList();
+                Assert.IsTrue(mirror.GetUtils().CompareArrays(varname, values, typeof(double)));
+            }
+        }
+    
+    
+    
     }
 }

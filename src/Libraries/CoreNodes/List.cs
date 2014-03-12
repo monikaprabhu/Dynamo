@@ -2,10 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Windows.Forms.Layout;
-using System.Windows.Input;
-using System.Xml.XPath;
 using Autodesk.DesignScript.Runtime;
 
 namespace DSCore
@@ -13,15 +9,14 @@ namespace DSCore
     /// <summary>
     ///     Methods for creating and manipulating Lists.
     /// </summary>
-    public class List
+    public static class List
     {
-        private List() { }
-
         /// <summary>
         ///     Creates a new list containing all unique items in the given list.
         /// </summary>
         /// <param name="list">List to filter duplicates out of.</param>
-        public static IList UniqueItems(IList list)
+        public static IList UniqueItems(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             return list.Cast<object>().Distinct().ToList();
         }
@@ -31,7 +26,9 @@ namespace DSCore
         /// </summary>
         /// <param name="list">List to search in.</param>
         /// <param name="item">Item to look for.</param>
-        public static bool ContainsItem(IList list, object item)
+        public static bool ContainsItem(
+            [ArbitraryDimensionArrayImport] IList list, 
+            object item)
         {
             return list.Contains(item);
         }
@@ -40,25 +37,30 @@ namespace DSCore
         ///     Creates a new list containing the items of the given list but in reverse order.
         /// </summary>
         /// <param name="list">List to be reversed.</param>
-        public static IList Reverse(IList list)
+        public static IList Reverse(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             return list.Cast<object>().Reverse().ToList();
         }
 
+        /*
         /// <summary>
         ///     Creates a new list containing the given items.
         /// </summary>
         /// <param name="items">Items to be stored in the new list.</param>
-        public static IList Create(params object[] items)
+        public static IList Create(
+            [ArbitraryDimensionArrayImport] params object[] items)
         {
             return items.ToList();
         }
+        */
 
         /// <summary>
         ///     Sorts a list using the built-in natural ordering.
         /// </summary>
         /// <param name="list">List to be sorted.</param>
-        public static IList Sort(IList list)
+        public static IList Sort(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             return list.Cast<object>().OrderBy(x => x).ToList();
         }
@@ -67,7 +69,8 @@ namespace DSCore
         ///     Returns the minimum value from a list.
         /// </summary>
         /// <param name="list">List to take the minimum value from.</param>
-        public static object MinimumItem(IEnumerable list)
+        public static object MinimumItem(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             return list.Cast<object>().Min();
         }
@@ -76,7 +79,8 @@ namespace DSCore
         ///     Returns the maximum value from a list.
         /// </summary>
         /// <param name="list">List to take the maximum value from.</param>
-        public static object MaximumItem(IList list)
+        public static object MaximumItem(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             return list.Cast<object>().Max();
         }
@@ -89,24 +93,44 @@ namespace DSCore
         /// <param name="mask">List of booleans representing a mask.</param>
         [MultiReturn("in", "var[]")]
         [MultiReturn("out", "var[]")]
-        public static Dictionary<string, object> FilterByBoolMask(IList list, IList mask)
+        public static Dictionary<string, object> FilterByBoolMask(
+            [ArbitraryDimensionArrayImport] IList list,
+            [ArbitraryDimensionArrayImport] IList mask)
+        {
+            var result = FilterByMaskHelper(list.Cast<object>(), mask.Cast<object>());
+
+            return new Dictionary<string, object>
+            {
+                { "in", result.Item1 },
+                { "out", result.Item2 }
+            };
+        }
+
+        private static Tuple<ArrayList, ArrayList> FilterByMaskHelper(IEnumerable<object> list, IEnumerable<object> mask)
         {
             var inList = new ArrayList();
             var outList = new ArrayList();
 
-            foreach (var p in list.Cast<object>().Zip(mask.Cast<bool>(), (item, flag) => new { item, flag }))
+            foreach (var p in list.Zip(mask, (item, flag) => new { item, flag }))
             {
-                if (p.flag)
-                    inList.Add(p.item);
+                if (p.flag is IList && p.item is IList)
+                {
+                    var recur = FilterByMaskHelper(
+                        (p.item as IList).Cast<object>(),
+                        (p.flag as IList).Cast<object>());
+                    inList.Add(recur.Item1);
+                    outList.Add(recur.Item2);
+                }
                 else
-                    outList.Add(p.item);
+                {
+                    if ((bool)p.flag)
+                        inList.Add(p.item);
+                    else
+                        outList.Add(p.item);
+                }
             }
 
-            return new Dictionary<string, object>
-            {
-                { "in", inList },
-                { "out", outList }
-            };
+            return Tuple.Create(inList, outList);
         }
 
         /// <summary>
@@ -116,7 +140,8 @@ namespace DSCore
         /// <param name="list">List to be split.</param>
         [MultiReturn("first", "var")]
         [MultiReturn("rest", "var[]")]
-        public static Dictionary<string, object> Deconstruct(IList list)
+        public static Dictionary<string, object> Deconstruct(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             return new Dictionary<string, object>
             {
@@ -130,7 +155,9 @@ namespace DSCore
         /// </summary>
         /// <param name="item">Item to be added.</param>
         /// <param name="list">List to add on to.</param>
-        public static IList AddItemToFront(object item, IList list)
+        public static IList AddItemToFront(
+            object item,
+            [ArbitraryDimensionArrayImport] IList list)
         {
             var newList = new ArrayList { item };
             newList.AddRange(list);
@@ -144,7 +171,9 @@ namespace DSCore
         /// <param name="amount">
         ///     Amount of items to take. If negative, items are taken from the end of the list.
         /// </param>
-        public static IList TakeItems(IList list, int amount)
+        public static IList TakeItems(
+            [ArbitraryDimensionArrayImport] IList list,
+            int amount)
         {
             var genList = list.Cast<object>();
             return (amount < 0 ? genList.Skip(list.Count + amount) : genList.Take(amount)).ToList();
@@ -157,7 +186,9 @@ namespace DSCore
         /// <param name="amount">
         ///     Amount of items to remove. If negative, items are removed from the end of the list.
         /// </param>
-        public static IList DropItems(IList list, int amount)
+        public static IList DropItems(
+            [ArbitraryDimensionArrayImport] IList list,
+            int amount)
         {
             var genList = list.Cast<object>();
             return (amount < 0 ? genList.Take(list.Count + amount) : genList.Skip(amount)).ToList();
@@ -170,7 +201,9 @@ namespace DSCore
         /// <param name="amount">
         ///     Amount to shift indices by. If negative, indices will be shifted to the left.
         /// </param>
-        public static IList ShiftIndices(IList list, int amount)
+        public static IList ShiftIndices(
+            [ArbitraryDimensionArrayImport] IList list,
+            int amount)
         {
             if (amount == 0)
                 return list;
@@ -187,7 +220,9 @@ namespace DSCore
         /// </summary>
         /// <param name="list">List to fetch an item from.</param>
         /// <param name="index">Index of the item to be fetched.</param>
-        public static object GetItemAtIndex(IList list, int index)
+        public static object GetItemAtIndex(
+            [ArbitraryDimensionArrayImport] IList list,
+            int index)
         {
             return list[index];
         }
@@ -202,7 +237,11 @@ namespace DSCore
         /// <param name="step">
         ///     Amount the indices of the items are separate by in the original list.
         /// </param>
-        public static IList Slice(IList list, int? start = null, int? count = null, int step = 1)
+        public static IList Slice(
+            [ArbitraryDimensionArrayImport] IList list,
+            int? start = null,
+            int? count = null,
+            int step = 1)
         {
             #region Disabled python-like slicing capability
 
@@ -263,7 +302,9 @@ namespace DSCore
         /// </summary>
         /// <param name="list">List to remove an item from.</param>
         /// <param name="index">Index of the item to be removed.</param>
-        public static IList RemoveItemAtIndex(IList list, int index)
+        public static IList RemoveItemAtIndex(
+            [ArbitraryDimensionArrayImport] IList list,
+            int index)
         {
             return list.Cast<object>().Where((_, i) => i != index).ToList();
         }
@@ -273,7 +314,9 @@ namespace DSCore
         /// </summary>
         /// <param name="list">List to remove items from.</param>
         /// <param name="indices">Indices of the items to be removed.</param>
-        public static IList RemoveItemsAtIndices(IList list, IList indices)
+        public static IList RemoveItemsAtIndices(
+            [ArbitraryDimensionArrayImport] IList list,
+            IList indices)
         {
             var idxs = new HashSet<int>(indices.Cast<int>());
             return list.Cast<object>().Where((_, i) => !idxs.Contains(i)).ToList();
@@ -288,7 +331,10 @@ namespace DSCore
         /// <param name="offset">
         ///     Amount of items to be ignored from the start of the list.
         /// </param>
-        public static IList DropEveryNthItem(IList list, int n, int offset = 0)
+        public static IList DropEveryNthItem(
+            [ArbitraryDimensionArrayImport] IList list,
+            int n,
+            int offset = 0)
         {
             return list.Cast<object>().Skip(offset).Where((_, i) => (i + 1)%n != 0).ToList();
         }
@@ -305,7 +351,10 @@ namespace DSCore
         /// <param name="offset">
         ///     Amount of items to be ignored from the start of the list.
         /// </param>
-        public static IList TakeEveryNthItem(IList list, int n, int offset = 0)
+        public static IList TakeEveryNthItem(
+            [ArbitraryDimensionArrayImport] IList list,
+            int n,
+            int offset = 0)
         {
             return list.Cast<object>().Skip(offset).Where((_, i) => (i + 1)%n == 0).ToList();
         }
@@ -322,7 +371,8 @@ namespace DSCore
         ///     Determines if the given list is empty.
         /// </summary>
         /// <param name="list">List to check for items.</param>
-        public static bool IsEmpty(IList list)
+        public static bool IsEmpty(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             return list.Count == 0;
         }
@@ -331,7 +381,8 @@ namespace DSCore
         ///     Gets the number of items stored in the given list.
         /// </summary>
         /// <param name="list">List to get the item count of.</param>
-        public static int Count(IList list)
+        public static int Count(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             return list.Count;
         }
@@ -340,7 +391,8 @@ namespace DSCore
         ///     Concatenates all given lists into a single list.
         /// </summary>
         /// <param name="lists">Lists to join into one.</param>
-        public static IList Join(params IList[] lists)
+        public static IList Join(
+            [ArbitraryDimensionArrayImport] params IList[] lists)
         {
             var result = new ArrayList();
             foreach (IList list in lists)
@@ -352,7 +404,8 @@ namespace DSCore
         ///     Gets the first item in a list.
         /// </summary>
         /// <param name="list">List to get the first item from.</param>
-        public static object FirstItem(IList list)
+        public static object FirstItem(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             return list[0];
         }
@@ -361,7 +414,8 @@ namespace DSCore
         ///     Removes the first item from the given list.
         /// </summary>
         /// <param name="list">List to get the rest of.</param>
-        public static IList RestOfItems(IList list)
+        public static IList RestOfItems(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             return list.Cast<object>().Skip(1).ToList();
         }
@@ -372,7 +426,9 @@ namespace DSCore
         /// </summary>
         /// <param name="list">List to chop up.</param>
         /// <param name="subLength">Length of each new sub-list.</param>
-        public static IList Chop(IList list, int subLength)
+        public static IList Chop(
+            [ArbitraryDimensionArrayImport] IList list, 
+            int subLength)
         {
             if (list.Count < subLength)
                 return list;
@@ -405,7 +461,9 @@ namespace DSCore
         /// </summary>
         /// <param name="list">A list</param>
         /// <param name="subLength">Length of each new sub-list.</param>
-        public static IList DiagonalRight(IList list, int subLength)
+        public static IList DiagonalRight(
+            [ArbitraryDimensionArrayImport] IList list,
+            int subLength)
         {
             if (list.Count < subLength)
                 return list;
@@ -455,7 +513,9 @@ namespace DSCore
         /// </summary>
         /// <param name="list">A list.</param>
         /// <param name="subLength">Length of each new sib-list.</param>
-        public static IList DiagonalLeft(IList list, int subLength)
+        public static IList DiagonalLeft(
+            [ArbitraryDimensionArrayImport] IList list,
+            int subLength)
         {
             if (list.Count < subLength)
                 return list;
@@ -494,6 +554,8 @@ namespace DSCore
             return finalList;
         }
 
+        /*
+
         /// <summary>
         ///     Swaps rows and columns in a list of lists.
         /// </summary>
@@ -520,7 +582,9 @@ namespace DSCore
 
             return argList;
         }
-
+        
+        */
+        
         /// <summary>
         ///     Creates a list containing the given item the given number of times.
         /// </summary>
@@ -536,7 +600,9 @@ namespace DSCore
         /// </summary>
         /// <param name="list">List to repeat.</param>
         /// <param name="amount">Number of times to repeat.</param>
-        public static IList Repeat(IList list, int amount)
+        public static IList Repeat(
+            [ArbitraryDimensionArrayImport] IList list,
+            int amount)
         {
             var result = new ArrayList();
             while (amount > 0)
@@ -551,7 +617,8 @@ namespace DSCore
         ///     Retrieves the last item in a list.
         /// </summary>
         /// <param name="list">List to get the last item of.</param>
-        public static object LastItem(IList list)
+        public static object LastItem(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             if (list.Count == 0)
                 throw new ArgumentException("Cannot get the last item in an empty list.", "list");
@@ -563,7 +630,8 @@ namespace DSCore
         ///     Shuffles a list, randomizing the order of its items.
         /// </summary>
         /// <param name="list">List to shuffle.</param>
-        public static IList Shuffle(IList list)
+        public static IList Shuffle(
+            [ArbitraryDimensionArrayImport] IList list)
         {
             var rng = new Random();
             return list.Cast<object>().OrderBy(_ => rng.Next()).ToList();
@@ -574,7 +642,9 @@ namespace DSCore
         /// </summary>
         /// <param name="list">List to permute.</param>
         /// <param name="length">Length of each permutation.</param>
-        public static IList Permutations(IList list, int? length = null)
+        public static IList Permutations(
+            [ArbitraryDimensionArrayImport] IList list,
+            int? length = null)
         {
             return
                 GetPermutations(list.Cast<object>(), length ?? list.Count)
@@ -591,7 +661,10 @@ namespace DSCore
         ///     Whether or not items are removed once selected for combination, defaults
         ///     to false.
         /// </param>
-        public static IList Combinations(IList list, int length, bool replace = false)
+        public static IList Combinations(
+            [ArbitraryDimensionArrayImport] IList list,
+            int length,
+            bool replace = false)
         {
             return
                 GetCombinations(list.Cast<object>(), length, replace)

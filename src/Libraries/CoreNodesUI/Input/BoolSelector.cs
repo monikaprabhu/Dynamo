@@ -38,9 +38,9 @@ namespace DSCoreNodesUI
             rbTrue.GroupName = groupName;
             rbFalse.GroupName = groupName;
 
-            rbTrue.Content = "1";
+            rbTrue.Content = "true";
             rbTrue.Padding = new Thickness(5, 0, 12, 0);
-            rbFalse.Content = "0";
+            rbFalse.Content = "false";
             rbFalse.Padding = new Thickness(5, 0, 0, 0);
 
             var wp = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Center };
@@ -49,8 +49,8 @@ namespace DSCoreNodesUI
             nodeUI.inputGrid.Children.Add(wp);
 
             //rbFalse.IsChecked = true;
-            rbTrue.Checked += rbTrue_Checked;
-            rbFalse.Checked += rbFalse_Checked;
+            rbTrue.Checked += OnRadioButtonClicked;
+            rbFalse.Checked += OnRadioButtonClicked;
 
             rbFalse.DataContext = this;
             rbTrue.DataContext = this;
@@ -66,15 +66,8 @@ namespace DSCoreNodesUI
             rbFalse.SetBinding(ToggleButton.IsCheckedProperty, rbFalseBinding);
         }
 
-        private static void rbFalse_Checked(object sender, RoutedEventArgs e)
+        private static void OnRadioButtonClicked(object sender, RoutedEventArgs e)
         {
-            //Value = false;
-            dynSettings.ReturnFocusToSearch();
-        }
-
-        private static void rbTrue_Checked(object sender, RoutedEventArgs e)
-        {
-            //Value = true;
             dynSettings.ReturnFocusToSearch();
         }
     }
