@@ -34,10 +34,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FScheme">
-      <HintPath>..\..\..\bin\AnyCPU\Debug\FScheme.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="FSharp.Core" />
     <Reference Include="HelixToolkit.Wpf">
       <HintPath>..\..\..\extern\Helix3D\NET40\HelixToolkit.Wpf.dll</HintPath>
