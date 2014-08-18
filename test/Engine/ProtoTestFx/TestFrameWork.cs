@@ -193,8 +193,6 @@ namespace ProtoTestFx.TD
                 
                 StackTrace trace = new StackTrace();
                 int caller = 2;
-                System.Diagnostics.StackFrame frame = trace.GetFrame(caller);
-                string callerName = frame.GetMethod().Name;
                 
                 string tempPath = System.IO.Path.GetTempPath();
                 string import = @"testImport\";
@@ -252,18 +250,21 @@ namespace ProtoTestFx.TD
                     }
                 }
                 testMirror = runner.Execute(sourceCode, testCore);
-                String fileName = TestContext.CurrentContext.Test.Name + ".ds";
-                String folderName = TestContext.CurrentContext.Test.FullName;
 
-                string[] substrings = folderName.Split('.');
-
-                string path = "..\\..\\..\\test\\core\\dsevaluation\\DSFiles\\";
-                if (!System.IO.Directory.Exists(path))
-                    System.IO.Directory.CreateDirectory(path);
                 string value = Environment.GetEnvironmentVariable("DumpDS");
-                if (value =="true")
+                if (value == "true")
                 {
-                    createDSFile(fileName, path, sourceCode); // Uncomment this line inorder  to dump the language scripts in seperate ds files. Require for CBNLanguageComparison Tests
+
+                    String fileName = TestContext.CurrentContext.Test.Name + ".ds";
+                    String folderName = TestContext.CurrentContext.Test.FullName;
+
+                    string[] substrings = folderName.Split('.');
+
+                    string path = "..\\..\\..\\test\\core\\dsevaluation\\DSFiles\\";
+                    if (!System.IO.Directory.Exists(path))
+                        System.IO.Directory.CreateDirectory(path);
+
+                    createDSFile(fileName, path, sourceCode);
                 }
                 SetErrorMessage(errorstring);
                 return testMirror;
