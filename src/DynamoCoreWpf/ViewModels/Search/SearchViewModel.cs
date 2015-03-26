@@ -137,15 +137,6 @@ namespace Dynamo.ViewModels
             }
         }
 
-        public bool SearchAddonsVisibility
-        {
-            get
-            {
-                // TODO(Vladimir): uncomment when Addons are shown.
-                return false;//AddonRootCategories.Any(cat => cat.Visibility);
-            }
-        }
-
         public enum ViewMode { LibraryView, LibrarySearchView };
 
         /// <summary>
@@ -517,8 +508,7 @@ namespace Dynamo.ViewModels
                         }
                     }
 
-                    target.SubCategories.Add(newTarget);
-                    target.SubCategories = new ObservableCollection<NodeCategoryViewModel>(target.SubCategories.OrderBy(x => x.Name));
+                    target.InsertSubCategory(newTarget);
 
                     // Proceed to insert the new entry under 'newTarget' category with the remaining 
                     // name stack. In the first iteration this would have been 'MyNamespace.MyClass'.
