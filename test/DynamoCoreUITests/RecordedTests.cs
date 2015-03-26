@@ -511,7 +511,7 @@ namespace DynamoCoreUITests
             Assert.AreEqual(cmdOne.MakeCurrent, cmdTwo.MakeCurrent);
         }
 
-        [Test, Category("Failure")]
+        
         public void TestCustomNode()
         {
             RunCommandsFromFile("TestCustomNode.xml");
@@ -536,8 +536,8 @@ namespace DynamoCoreUITests
             AssertPreviewValue("04f6dab5-0a0b-4563-9f20-d0e58fcae7a5", 1.0);
         }
 
-        [Test]
-        [Category("Failure")] //TODO(Steve): Recorded Commands have changed for custom nodes.
+        [Test, Category("Failure")]
+        
         public void TestCustomNodeUI()
         {
             RunCommandsFromFile("CustomNodeUI.xml", false, (commandTag) =>
@@ -610,7 +610,7 @@ namespace DynamoCoreUITests
             });
         }
 
-        [Test, RequiresSTA, Category("Failure")]
+        [Test, RequiresSTA]
         public void Defect_MAGN_1143_CN()
         {
             // modify the name of the input node
@@ -3518,7 +3518,7 @@ namespace DynamoCoreUITests
             AssertPreviewValue("cd759105-3c6b-4f8e-81e7-73266e92f357", false);
         }
 
-        [Test,Category("Failure")]
+        [Test]
         public void modifyCN_6191()
         {
 
