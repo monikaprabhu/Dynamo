@@ -1,0 +1,12 @@
+<Workspace Version="0.8.1.1440" X="37.81323" Y="13.771485" zoom="0.70823125" Name="Home" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
+  <NamespaceResolutionMap />
+  <Elements>
+    <Dynamo.Nodes.CodeBlockNodeModel guid="eee652f5-53e8-4312-85a2-63ee0fe76b12" type="Dynamo.Nodes.CodeBlockNodeModel" nickname="Code Block" x="24.0000000000001" y="72.4" isVisible="true" isUpstreamVisible="true" lacing="Disabled" CodeText="&quot;https://www.random.org/integers/?num=1&amp;min=1&amp;max=100&amp;col=1&amp;base=10&amp;format=plain&amp;rnd=new&quot;;" ShouldFocus="false" />
+    <DSCoreNodesUI.WebRequest guid="6abbd5a5-d79b-46f5-81e5-4c1057ce0b09" type="DSCoreNodesUI.WebRequest" nickname="Web Request" x="794.886761915688" y="221.686617188948" isVisible="true" isUpstreamVisible="true" lacing="Disabled" />
+  </Elements>
+  <Connectors>
+    <Dynamo.Models.ConnectorModel start="eee652f5-53e8-4312-85a2-63ee0fe76b12" start_index="0" end="6abbd5a5-d79b-46f5-81e5-4c1057ce0b09" end_index="0" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+</Workspace>

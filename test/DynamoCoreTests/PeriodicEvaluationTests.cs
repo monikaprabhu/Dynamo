@@ -137,12 +137,34 @@ namespace Dynamo.Tests
             // even with the run period as 
             Assert.AreEqual(6, count);
         }
+        [Test]
+        public void PeriodicEvaluation_7059()
+        {
+         
+            // Test to verify PeriodicEvaluation with webrequest.
+            // http://adsk-oss.myjetbrains.com/youtrack/issue/MAGN-7059
+            Workspace.RunSettings.RunType = RunType.Periodic;
+            Workspace.RunSettings.RunPeriod = 100;
 
+            var count = 0;
+
+            var ws = Open<HomeWorkspaceModel>(TestDirectory, "core", "periodic", "Webrequest.dyn");
+            Workspace.StopPeriodicEvaluation();
+            Workspace.StartPeriodicEvaluation();
+
+            Thread.Sleep(1000);
+
+            Assert.AreEqual(ws.EvaluationCount, count);      
+            
+
+         }
+        
         [Test]
         [Category("Failure")]
         public void DynamoModel_OpenFileFromPath_StartsPeriodicEvaluation()
         {
-            // asser that SampleLibraryZeroTouch must be loaded
+            
+            // assert that SampleLibraryZeroTouch must be loaded
             Assert.IsTrue(CurrentDynamoModel.LibraryServices.ImportedLibraries.Any(x => x.Contains("SampleLibraryZeroTouch")));
 
             var ws = Open<HomeWorkspaceModel>(TestDirectory, "core", "periodic", "simple.dyn");
