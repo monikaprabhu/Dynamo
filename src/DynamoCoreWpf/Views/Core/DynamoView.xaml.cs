@@ -31,6 +31,7 @@ using System.Windows.Data;
 using Dynamo.UI.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using Dynamo.Configuration;
 using Dynamo.Services;
 using Dynamo.Wpf.Utilities;
 using Dynamo.Logging;
@@ -41,6 +42,7 @@ using Dynamo.Wpf.Views.Gallery;
 using Dynamo.Wpf.Extensions;
 using Dynamo.Interfaces;
 using Dynamo.Wpf.Views.PackageManager;
+using Dynamo.Views;
 
 namespace Dynamo.Controls
 {
@@ -49,6 +51,8 @@ namespace Dynamo.Controls
     /// </summary>
     public partial class DynamoView : Window, IDisposable
     {
+        public const string BackgroundPreviewName = "BackgroundPreview";
+
         private readonly NodeViewCustomizationLibrary nodeViewCustomizationLibrary;
         private DynamoViewModel dynamoViewModel;
         private readonly Stopwatch _timer;
@@ -146,6 +150,87 @@ namespace Dynamo.Controls
                     Log(ext.Name + ": " + exc.Message);
                 }
             }
+
+            this.dynamoViewModel.RequestPaste += OnRequestPaste;
+        }
+
+        private void OnRequestPaste()
+        {
+            var clipBoard = dynamoViewModel.Model.ClipBoard;
+            var locatableModels = clipBoard.Where(item => item is NoteModel || item is NodeModel);
+
+            // Find node views, that were copied. Translate them into rect.
+            var nodeBounds = this.ChildrenOfType<NodeView>()
+                            .Where(nodeView => locatableModels
+                                .Any(locatable => locatable.GUID == nodeView.ViewModel.NodeModel.GUID))
+                                .Select(view => view.BoundsRelativeTo(this));
+
+            // Find workspace view.
+            var workspace = this.ChildOfType<WorkspaceView>();
+            var workspaceBounds = workspace.BoundsRelativeTo(this);
+
+            bool outOfView = nodeBounds.Any(node => !workspaceBounds.Contains(node));
+
+            // If copied nodes are out of view, we paste their copies under mouse cursor or at the center of workspace.
+            if (outOfView)
+            {
+                // If mouse is over workspace, paste copies under mouse cursor.
+                if (workspace.IsMouseOver)
+                {
+                    dynamoViewModel.Model.Paste(Mouse.GetPosition(workspace.WorkspaceElements).AsDynamoType(), false);
+                }
+                else // If mouse is out of workspace view, then paste copies at the center.
+                {
+                    PasteNodeAtTheCenter(workspace);
+                }
+                return;
+            }
+
+            // All nodes are inside of workspace and visible for user.
+            // Order them by CenterX and CenterY.
+            var orderedItems = locatableModels.OrderBy(item => item.CenterX + item.CenterY);
+
+            // Search for the rightmost item. It's item with the biggest X, Y coordinates of center.
+            var rightMostItem = orderedItems.Last();
+            // Search for the leftmost item. It's item with the smallest X, Y coordinates of center.
+            var leftMostItem = orderedItems.First();
+
+            // Compute shift so that left most item will appear at right most item place with offset.
+            var shiftX = rightMostItem.X + rightMostItem.Width - leftMostItem.X;
+            var shiftY = rightMostItem.Y - leftMostItem.Y;
+
+            // Find new node bounds.
+            var newNodeBounds = nodeBounds
+                .Select(node => new Rect(node.X + shiftX + workspace.ViewModel.Model.CurrentPasteOffset,
+                                         node.Y + shiftY + workspace.ViewModel.Model.CurrentPasteOffset,
+                                         node.Width, node.Height));
+
+            outOfView = newNodeBounds.Any(node => !workspaceBounds.Contains(node));
+
+            // If new node bounds appeare out of workspace view, we should paste them at the center.
+            if (outOfView)
+            {
+                PasteNodeAtTheCenter(workspace);
+                return;
+            }
+
+            var x = shiftX + locatableModels.Min(m => m.X);
+            var y = shiftY + locatableModels.Min(m => m.Y);
+
+            // All copied nodes are inside of workspace.
+            // Paste them with little offset.           
+            dynamoViewModel.Model.Paste(new Point2D(x, y));
+        }
+
+        /// <summary>
+        /// Paste nodes at the center of workspace view.
+        /// </summary>
+        /// <param name="workspace">workspace view</param>
+        private void PasteNodeAtTheCenter(WorkspaceView workspace)
+        {
+            var centerX = (workspace.ActualWidth / 2 - workspace.ViewModel.Model.X) / workspace.ViewModel.Zoom;
+            var centerY = (workspace.ActualHeight / 2 - workspace.ViewModel.Model.Y) / workspace.ViewModel.Zoom;
+            dynamoViewModel.Model.Paste(new Point2D(centerX, centerY));
         }
 
         #region NodeViewCustomization
@@ -354,6 +439,11 @@ namespace Dynamo.Controls
             switch (e.ViewOperation)
             {
                 case ViewOperationEventArgs.Operation.FitView:
+                    if (dynamoViewModel.BackgroundPreviewViewModel != null)
+                    {
+                        dynamoViewModel.BackgroundPreviewViewModel.ZoomToFitCommand.Execute(null);
+                        return;
+                    }
                     BackgroundPreview.View.ZoomExtents();
                     break;
 
@@ -468,12 +558,7 @@ namespace Dynamo.Controls
                 }
             }
 
-            // For everything but a small number of tests,
-            // we do not want to create the 3D view when we
-            // are in test mode.
-            if (DynamoModel.IsTestMode) return;
-
-            BackgroundPreview = new Watch3DView();
+            BackgroundPreview = new Watch3DView {Name = BackgroundPreviewName};
             background_grid.Children.Add(BackgroundPreview);
             BackgroundPreview.DataContext = dynamoViewModel.BackgroundPreviewViewModel;
             BackgroundPreview.Margin = new System.Windows.Thickness(0,20,0,0);
@@ -1030,9 +1115,19 @@ namespace Dynamo.Controls
         // passes it to thecurrent workspace
         void DynamoView_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key != Key.Escape || !IsMouseOver || !e.IsRepeat) return;
+            if (e.Key != Key.Escape || !IsMouseOver) return;
 
-            dynamoViewModel.BackgroundPreviewViewModel.NavigationKeyIsDown = true;
+            var vm = dynamoViewModel.BackgroundPreviewViewModel;
+
+            if (e.IsRepeat)
+            {
+                vm.NavigationKeyIsDown = true;
+            }
+            else
+            {
+                vm.CancelNavigationState();
+            }
+            
             e.Handled = true;
         }
 

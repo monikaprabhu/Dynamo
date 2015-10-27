@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using Dynamo.Engine;
+using Dynamo.Engine.CodeGeneration;
 using Dynamo.Models;
 using Dynamo.Nodes;
 
@@ -47,6 +47,7 @@ namespace Dynamo.ViewModels
 
         public readonly DynamoViewModel DynamoViewModel;
         public readonly WorkspaceViewModel WorkspaceViewModel;
+        public readonly Size? PreferredSize;
 
         public NodeModel NodeModel { get { return nodeLogic; } private set { nodeLogic = value; } }
 
@@ -362,20 +363,20 @@ namespace Dynamo.ViewModels
 
         public NodeViewModel(WorkspaceViewModel workspaceViewModel, NodeModel logic)
         {
-            this.WorkspaceViewModel = workspaceViewModel;
-            this.DynamoViewModel = workspaceViewModel.DynamoViewModel;
+            WorkspaceViewModel = workspaceViewModel;
+            DynamoViewModel = workspaceViewModel.DynamoViewModel;
            
             nodeLogic = logic;
             
-            //respond to collection changed events to sadd
+            //respond to collection changed events to add
             //and remove port model views
             logic.InPorts.CollectionChanged += inports_collectionChanged;
             logic.OutPorts.CollectionChanged += outports_collectionChanged;
 
             logic.PropertyChanged += logic_PropertyChanged;
 
-            this.DynamoViewModel.Model.PropertyChanged += Model_PropertyChanged;
-            this.DynamoViewModel.Model.DebugSettings.PropertyChanged += DebugSettings_PropertyChanged;
+            DynamoViewModel.Model.PropertyChanged += Model_PropertyChanged;
+            DynamoViewModel.Model.DebugSettings.PropertyChanged += DebugSettings_PropertyChanged;
 
             ErrorBubble = new InfoBubbleViewModel(DynamoViewModel);
             UpdateBubbleContent();
@@ -390,9 +391,17 @@ namespace Dynamo.ViewModels
             {
                 DynamoViewModel.EngineController.AstBuilt += EngineController_AstBuilt;
             }
+
             ShowExecutionPreview = workspaceViewModel.DynamoViewModel.ShowRunPreview;
             IsNodeAddedRecently = true;
             DynamoSelection.Instance.Selection.CollectionChanged += SelectionOnCollectionChanged;
+        }
+
+        public NodeViewModel(WorkspaceViewModel workspaceViewModel, NodeModel logic, Size preferredSize)
+            :this(workspaceViewModel, logic)
+        {
+            // preferredSize is set when a node needs to have a fixed size
+            PreferredSize = preferredSize;
         }
 
         private void SelectionOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -416,7 +425,7 @@ namespace Dynamo.ViewModels
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void EngineController_AstBuilt(object sender, AstBuilder.ASTBuiltEventArgs e)
+        void EngineController_AstBuilt(object sender, CompiledEventArgs e)
         {
             if (e.Node == nodeLogic.GUID)
             {
@@ -629,12 +638,11 @@ namespace Dynamo.ViewModels
 
         private void SetLacingType(object param)
         {           
-            this.DynamoViewModel.ExecuteCommand(
+            DynamoViewModel.ExecuteCommand(
               new DynamoModel.UpdateModelValueCommand(
-                    System.Guid.Empty, this.NodeModel.GUID, "ArgumentLacing", param.ToString()));
-          
-            DynamoViewModel.UndoCommand.RaiseCanExecuteChanged();
-            DynamoViewModel.RedoCommand.RaiseCanExecuteChanged();
+                    Guid.Empty, NodeModel.GUID, "ArgumentLacing", param.ToString()));
+
+            DynamoViewModel.RaiseCanExecuteUndoRedo();
         }
 
         private bool CanSetLacingType(object param)
@@ -804,8 +812,7 @@ namespace Dynamo.ViewModels
                 new[] { nodeLogic.GUID }, "IsVisible", visibility);
 
             DynamoViewModel.Model.ExecuteCommand(command);
-            DynamoViewModel.UndoCommand.RaiseCanExecuteChanged();
-            DynamoViewModel.RedoCommand.RaiseCanExecuteChanged();
+            DynamoViewModel.RaiseCanExecuteUndoRedo();
         }
 
         private void ToggleIsUpstreamVisible(object parameter)
@@ -816,8 +823,7 @@ namespace Dynamo.ViewModels
                 new[] { nodeLogic.GUID }, "IsUpstreamVisible", visibility);
 
             DynamoViewModel.Model.ExecuteCommand(command);
-            DynamoViewModel.UndoCommand.RaiseCanExecuteChanged();
-            DynamoViewModel.RedoCommand.RaiseCanExecuteChanged();
+            DynamoViewModel.RaiseCanExecuteUndoRedo();
         }
 
         private bool CanVisibilityBeToggled(object parameter)

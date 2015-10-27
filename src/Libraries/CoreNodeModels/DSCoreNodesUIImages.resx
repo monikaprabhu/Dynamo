@@ -1243,34 +1243,4 @@
         /khrAAAAAElFTkSuQmCC
 </value>
   </data>
-  <data name="DSCore.GroupByKey.Large" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
-        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAM6SURBVHhe7djdTdxQEMVxSqAESqAE8hgpDymBElIC
-        HURKAykhJaBUkOc8UQIlkJmj/6KrvTbxLr6LNT4/aQQcYu/MOPthrszMzMzMzMzMzMzMzM7x+8vn26iH
-        qMemfkbdR13zz2xtsdxcfC775Y16jnrgEFtLLDX/d+dyp5Y+VXmh/GxYQyzyrlnsKfXIKexcscTrqKdm
-        qadWvjfkBXxv3dDSvsTg36KmFvsRdU9b+xFD/zlawkfXfi5CDJsvP+3w+XKS2U3UR16YfVyEGDRfew9D
-        PxFL/JwXoV3KJeuZNmqLQdsL0H2iaX536fpJC7XFoHnjdRg67wFu+VX+Lu8L2qVcqvax/IOj4fMifI/K
-        94I2P6eOz5PvKcefuPLPHe3N376Wn2LoX80C1qrXRcb3ececy9ddc3w9PLP0Rhtf81mYF2F/y08xePs+
-        8J7Kmzk9gzi1xM/6VMWPEj/f8a0c/353YgH/+wPcW5UvI/6b0HvkAqPO+dy/vzvXUWKZeRFOeSZ4+SPk
-        YqPeejbkRXr9uGqDxJLzTvhrVL7GZ+WF2febpZmZ2da8nIjDVsWpF+OwGphpMQ5bFadejMNqYKbFOGxV
-        nHoxDquBmYRok2hRiGpgJiHaJFoUohqYSYg2iRaFqAZmEqJNokUhqoGZhGiTaFGIamAmIdokWhSiGphJ
-        iDqffvx9uVTxkB1aFKIamEmIOlOLGlU8ZIcWhagGZhKiztSiRhUP2aFFIaqBmYSoM7eg0XmLFoWoBmYS
-        os7cgkbnLVoUohqYSYg6cwsanbdoUYhqYCYh6swtaHTeokUhqoGZhKgzt6DReYsWhagGZhKiztyCRuct
-        WhSiGphJiDpzCxqdt2hRiGpgJiHqzC1odN6iRSGqgZmEqDO3oNF5ixaFqAZmEqJOu6DRxUN2aFGIamAm
-        IepMLWpU8ZAdWhSiGphJiDpTixpVPGSHFoWoBmYSok2iRSGqgZmEaJNoUYhqYCYh2iRaFKIamEmINokW
-        hagGZhKiTaJFIaqBmYRok2hRiGpgpsU4bFWcejEOq4GZFuOwVXHqxTisBmZajMNWxakX4zAzMzMzMzMz
-        MzMzMzMzMzMzM7MjV1f/AOczxkZjb58vAAAAAElFTkSuQmCC
-</value>
-  </data>
-  <data name="DSCore.GroupByKey.Small" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
-        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAADBSURBVFhH7ZLtCcJAEESvhJRgCSkh/hRShCVYgh0I
-        NpASLCGkDKtICeeMDEGWg/PjTiTug0dg2dudXBIc52eZ+l0LBzjCg8rfAQs7GI0Mwrq11bFyYOgFztIG
-        STnoaBkw8H7t8KQFOWcdLQMG8gZSiyj/C3rUk71lPwMHQnv9XNaopT5YtoH8DHzTvcp/TjSonEQtCyp/
-        xruD1hlge77GnGqtF+CZJ/EA1QLkVGudAK+wrgCPqJxELQsqO47jGEK4AVpcaA+PIsTnAAAAAElFTkSu
-        QmCC
-</value>
-  </data>
 </root>

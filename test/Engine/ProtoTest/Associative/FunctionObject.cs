@@ -293,7 +293,7 @@ r = f;
 
         [Test]
         [Category("DSDefinedClass_Ported")]
-        public void TestSortByKey()
+        public void TestSortByFunction()
         {
             // Tracked by: http://adsk-oss.myjetbrains.com/youtrack/issue/MAGN-4037
             string err = "MAGN-4037 Defects with FunctionObject tests";
@@ -312,19 +312,19 @@ def getCoordinateValue(p : DummyPoint)
 }
 
 getPointKey = _SingleFunctionObject(getCoordinateValue, 1, { }, { }, true);
-r1 = SortByKey(null, getPointKey);
-r2 = SortByKey({ }, getPointKey);
+r1 = SortByFunction(null, getPointKey);
+r2 = SortByFunction({ }, getPointKey);
 
-r3 = SortByKey({ p1 }, getPointKey);
+r3 = SortByFunction({ p1 }, getPointKey);
 t1 = __Map(getPointKey, r3);
 
-r4 = SortByKey({ p1, p1, p1 }, getPointKey);
+r4 = SortByFunction({ p1, p1, p1 }, getPointKey);
 t2 = __Map(getPointKey, r4);
 
-r5 = SortByKey({ p1, p2, p3 }, getPointKey);
+r5 = SortByFunction({ p1, p2, p3 }, getPointKey);
 t3 = __Map(getPointKey, r5);
 
-r6 = SortByKey({ p2, p1 }, getPointKey);
+r6 = SortByFunction({ p2, p1 }, getPointKey);
 t4 = __Map(getPointKey, r6);
 ";
             thisTest.RunScriptSource(code);
@@ -332,6 +332,55 @@ t4 = __Map(getPointKey, r6);
             thisTest.Verify("t2", new object[] { 6, 6, 6 });
             thisTest.Verify("t3", new object[] { 6, 6, 9 });
             thisTest.Verify("t4", new object[] { 6, 9});
+        }
+
+        [Test]
+        public void TestGroupByFunction()
+        {
+            string code =
+    @"import(""FFITarget.dll"");
+import (""DSCoreNodes.dll"");
+import (""FunctionObject.ds"");
+
+p1 = DummyPoint.ByCoordinates(0, 0, 0);
+p2 = DummyPoint.ByCoordinates(1, 0, 0);
+p3 = DummyPoint.ByCoordinates(1, -1, 0);
+
+def getCoordinateValue(p : DummyPoint)
+{
+    return = p.X + p.Y + p.Z;
+}
+
+getPointKey = _SingleFunctionObject(getCoordinateValue, 1, { }, { }, true);
+r1 = GroupByFunction(null, getPointKey);
+r2 = GroupByFunction({ }, getPointKey);
+
+r3 = GroupByFunction({ p1 }, getPointKey);
+
+r4 = GroupByFunction({ p1, p2, p3 }, getPointKey);
+
+";
+            thisTest.RunScriptSource(code);
+            thisTest.Verify("r1", null);
+            thisTest.Verify("r2", new object[] { });
+            thisTest.Verify("r3", new object[]
+            {
+                new object[]
+                {
+                    FFITarget.DummyPoint.ByCoordinates(0, 0, 0)
+                }
+            });
+            thisTest.Verify("r4", new object[]
+            {
+                new object[]
+                {
+                    FFITarget.DummyPoint.ByCoordinates(0, 0, 0), FFITarget.DummyPoint.ByCoordinates(1, -1, 0)
+                },
+                new object[]
+                {
+                    FFITarget.DummyPoint.ByCoordinates(1, 0, 0)
+                }
+            });
         }
 
         [Test]
@@ -400,101 +449,5 @@ v2 = __Reduce(acc2, 0, 1..10);
             thisTest.Verify("v1", 3628800);
             thisTest.Verify("v2", 55);
         }
-        [Test]
-        public void Test__GroupByKey1()
-        {
-            string code =
-    @"
-import (""DSCoreNodes.dll"");
-import (""FunctionObject.ds"");
-
-list = {""a"", ""b"", ""c""};
-keys = {""key1"", ""key2"", ""key1""};
-
-result = __GroupByKey(list, keys);
-r1 = result[0];
-r2 = result[1];
-";
-            thisTest.RunScriptSource(code);
-            thisTest.Verify("r1", new object[] { new object[] { "a", "c" }, new object[] { "b" } });
-            thisTest.Verify("r2", new object[] { "key1", "key2" });
-        }
-
-        [Test]
-        public void Test__GroupByKey2()
-        {
-            string code =
-    @"
-import (""DSCoreNodes.dll"");
-import (""FunctionObject.ds"");
-
-list = {""San Francisco"",
-        ""Springfield"",
-        ""Fresno"",
-        ""Berkeley"",
-        ""Fall River"",
-        ""Waltham"",
-        ""Sacramento""};
-
-keys = {""California"",
-        ""Massachusetts"",
-        ""California"",
-        ""California"",
-        ""Massachusetts"",
-        ""Massachusetts"",
-        ""California""};
-
-result = __GroupByKey(list, keys);
-r1 = result[0];
-r2 = result[1];
-";
-            thisTest.RunScriptSource(code);
-            thisTest.Verify("r1", new object[]
-            {
-                new object[] { "San Francisco", "Fresno",  "Berkeley", "Sacramento"}, 
-                new object[] { "Springfield", "Fall River", "Waltham" }
-            });
-            thisTest.Verify("r2", new object[] { "California", "Massachusetts" });
-        }
-
-        [Test]
-        public void Test__GroupByKey3()
-        {
-            string code =
-    @"
-import (""DSCoreNodes.dll"");
-import (""FunctionObject.ds"");
-
-list = {""item1"", ""item2"", ""item1"", ""item3""};
-keys = {""key1"", ""key2"", ""key1""};
-
-result = __GroupByKey(list, keys);
-r1 = result[0];
-r2 = result[1];
-";
-            thisTest.RunScriptSource(code);
-            thisTest.Verify("r1", new object[] { new object[] { "item1", "item1" }, new object[] { "item2" } });
-            thisTest.Verify("r2", new object[] { "key1", "key2" });
-        }
-
-        [Test]
-        public void Test__GroupByKey4()
-        {
-            string code =
-    @"
-import (""DSCoreNodes.dll"");
-import (""FunctionObject.ds"");
-
-list = {""item1""};
-keys = {""key1"", ""key2""};
-
-result = __GroupByKey(list, keys);
-r1 = result[0];
-r2 = result[1];
-";
-            thisTest.RunScriptSource(code);
-            thisTest.Verify("r1", new object[] { new object[] { "item1" } });
-            thisTest.Verify("r2", new object[] { "key1", "key2" });
-        }
-    }  
+    }
 }

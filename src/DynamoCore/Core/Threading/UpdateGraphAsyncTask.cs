@@ -1,5 +1,5 @@
-using System.Linq;
-﻿using System;
+﻿using System.Linq;
+ using System;
 using System.Collections.Generic;
 
 using Dynamo.Engine;
@@ -95,30 +95,42 @@ namespace Dynamo.Core.Threading
         protected override void HandleTaskExecutionCore()
         {
             // Updating graph in the context of ISchedulerThread.
-            engineController.UpdateGraphImmediate(graphSyncData);
+
+            // EngineController might be disposed and become invalid.
+            // After MAGN-5167 is done, we could remove this checking.
+            if (!engineController.IsDisposed)
+                engineController.UpdateGraphImmediate(graphSyncData);
         }
 
         protected override void HandleTaskCompletionCore()
         {
-            // Retrieve warnings in the context of ISchedulerThread.
-            BuildWarnings = engineController.GetBuildWarnings();
-            RuntimeWarnings = engineController.GetRuntimeWarnings();
-
-            // Mark all modified nodes as being updated (if the task has been 
-            // successfully scheduled, executed and completed, it is expected 
-            // for "modifiedNodes" to be both non-null and non-empty.
-            // 
-            // In addition to marking modified nodes as being updated, their 
-            // warning states are cleared (which include the tool-tip). Any node
-            // that has build/runtime warnings assigned to it will properly be 
-            // restored to warning state when task completion handler sets the 
-            // corresponding build/runtime warning on it.
-            // 
-            foreach (var modifiedNode in ModifiedNodes)
+            if (engineController.IsDisposed)
             {
-                modifiedNode.IsUpdated = true;
-                if (modifiedNode.State == ElementState.Warning)
-                    modifiedNode.ClearRuntimeError();
+                BuildWarnings = new Dictionary<Guid, List<BuildWarning>>();
+                RuntimeWarnings = new Dictionary<Guid, List<RuntimeWarning>>();
+            }
+            else
+            {
+                // Retrieve warnings in the context of ISchedulerThread.
+                BuildWarnings = engineController.GetBuildWarnings();
+                RuntimeWarnings = engineController.GetRuntimeWarnings();
+
+                // Mark all modified nodes as being updated (if the task has been 
+                // successfully scheduled, executed and completed, it is expected 
+                // for "modifiedNodes" to be both non-null and non-empty.
+                // 
+                // In addition to marking modified nodes as being updated, their 
+                // warning states are cleared (which include the tool-tip). Any node
+                // that has build/runtime warnings assigned to it will properly be 
+                // restored to warning state when task completion handler sets the 
+                // corresponding build/runtime warning on it.
+                // 
+                foreach (var modifiedNode in ModifiedNodes)
+                {
+                    modifiedNode.WasInvolvedInExecution = true;
+                    if (modifiedNode.State == ElementState.Warning)
+                        modifiedNode.ClearRuntimeError();
+                }
             }
         }
 
@@ -150,15 +162,20 @@ namespace Dynamo.Core.Threading
                    other.graphSyncData.DeletedNodeIDs.All(graphSyncData.DeletedNodeIDs.Contains);
         }
 
-        protected override AsyncTask.TaskMergeInstruction CanMergeWithCore(AsyncTask otherTask)
+        private bool IsScheduledAfter(UpdateGraphAsyncTask other)
+        {
+            return CreationTime > other.CreationTime;
+        }
+
+        protected override TaskMergeInstruction CanMergeWithCore(AsyncTask otherTask)
         {
             var theOtherTask = otherTask as UpdateGraphAsyncTask;
             if (theOtherTask == null)
                 return base.CanMergeWithCore(otherTask);
 
-            if (theOtherTask.Contains(this))
+            if (theOtherTask.IsScheduledAfter(this) && theOtherTask.Contains(this))
                 return TaskMergeInstruction.KeepOther;
-            else if (this.Contains(theOtherTask)) 
+            else if (this.IsScheduledAfter(theOtherTask) && this.Contains(theOtherTask))
                 return TaskMergeInstruction.KeepThis;
             else
                 return TaskMergeInstruction.KeepBoth;

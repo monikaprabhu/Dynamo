@@ -757,6 +757,9 @@ It does not contain your graph or any personal data</value>
   <data name="StartPageMoreSamples" xml:space="preserve">
     <value>More Samples</value>
   </data>
+  <data name="StartPageDynamoPrimer" xml:space="preserve">
+    <value>Dynamo Primer</value>
+  </data>
   <data name="StartPageNewCustomNode" xml:space="preserve">
     <value>Custom Node</value>
     <comment>Start page | New custom node</comment>
@@ -1607,6 +1610,9 @@ Do you want to install the latest Dynamo update?</value>
   <data name="GroupContextMenuUngroup" xml:space="preserve">
     <value>Ungroup</value>
   </data>
+  <data name="GroupContextMenuGraphLayout" xml:space="preserve">
+    <value>Cleanup Node Layout</value>
+  </data>
   <data name="PackageDuplicateAssemblyWarning" xml:space="preserve">
     <value>Due to limitations in the .NET framework, it is not possible to update your package assembly while it is already loaded.  Please update the assembly while {0} is not running and try again.</value>
   </data>
@@ -1910,6 +1916,9 @@ Do you want to install the latest Dynamo update?</value>
     <value>Background Preview</value>
     <comment>The name of the 3D background preview.</comment>
   </data>
+  <data name="DynamoViewViewMenuShowGrid" xml:space="preserve">
+    <value>Show Grid</value>
+  </data>
   <data name="CameraDataLoadError" xml:space="preserve">
     <value>Camera position information could not be loaded from the file.</value>
   </data>
@@ -1934,5 +1943,11 @@ Do you want to install the latest Dynamo update?</value>
   </data>
   <data name="AddToLibraryButton" xml:space="preserve">
     <value>Add</value>
+  </data>
+  <data name="BackgroundPreviewDefaultName" xml:space="preserve">
+    <value>Default Background Preview</value>
+  </data>
+  <data name="BackgroundPreviewCreationFailureMessage" xml:space="preserve">
+    <value>There was an error creating a background preview in Dynamo. This could be due to a lack of graphics resources on your machine. See the log for more information.</value>
   </data>
 </root>

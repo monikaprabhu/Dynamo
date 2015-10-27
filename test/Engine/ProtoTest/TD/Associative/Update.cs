@@ -8,7 +8,6 @@ namespace ProtoTest.TD.Associative
 {
     class Update : ProtoTestBase
     {
-        ProtoScript.Config.RunConfiguration runnerConfig;
         ProtoScript.Runners.DebugRunner fsr;
         string importPath = "..\\..\\..\\test\\Engine\\ProtoTest\\ImportFiles\\";
 
@@ -16,8 +15,6 @@ namespace ProtoTest.TD.Associative
         {
             base.Setup();
            
-            runnerConfig = new ProtoScript.Config.RunConfiguration();
-            runnerConfig.IsParrallel = false;
             fsr = new DebugRunner(core);
             DLLFFIHandler.Register(FFILanguage.CSharp, new CSModuleHelper());
             DLLFFIHandler.Register(FFILanguage.CPlusPlus, new ProtoFFI.PInvokeModuleHelper());
@@ -230,7 +227,7 @@ line_0 = [Imperative]
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T007_Update_In_Class()
         {
@@ -409,7 +406,8 @@ r1 = true;
         [Category("SmokeTest")]
         public void T013_Update_Of_Variables_To_User_Defined_Class()
         {
-            string code = @"import(""FFITarget.dll"");
+            string code = @"
+import(""FFITarget.dll"");
 r1 = 2.0;
 r2 = r1+1;
 r1 = TestObjectA.TestObjectA(5);
@@ -429,7 +427,8 @@ t1 = TestObjectA.TestObjectA(5);
         [Category("SmokeTest")]
         public void T014_Update_Of_Class_Properties()
         {
-            string code = @"import(""FFITarget.dll"");
+            string code = @"
+import(""FFITarget.dll"");
 x = 3;
 a1 = TestObjectA.TestObjectA(x);
 b1 = a1.a;
@@ -446,7 +445,8 @@ c1 = b1;
         [Category("SmokeTest")]
         public void T015_Update_Of_Class_Properties()
         {
-            string code = @"import(""FFITarget.dll"");
+            string code = @"
+import(""FFITarget.dll"");
 x = { 3, 4 } ;
 a1 = TestObjectA.TestObjectA(x);
 b1 = a1.a;
@@ -465,7 +465,8 @@ c1 = b1;
         [Category("SmokeTest")]
         public void T016_Update_Of_Variable_Types()
         {
-            string code = @"import(""FFITarget.dll"");
+            string code = @"
+import(""FFITarget.dll"");
 x = { 3, 4 } ;
 y = x[0] + 1;
 x =  { 3.5, 4.5 } ;
@@ -476,7 +477,7 @@ x =  { TestObjectA.TestObjectA(1).a, TestObjectA.TestObjectA(2).a } ;";
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T017_Update_Of_Class_Instances()
         {
@@ -544,7 +545,7 @@ a 	 = MyPoint.ByAngleRadius(5.0);
             string src =
                 Path.GetFullPath(string.Format("{0}{1}", testCasePath, "T017_Update_Of_Class_Instances.ds")); 
             
-            fsr.LoadAndPreStart(src, runnerConfig);
+            fsr.LoadAndPreStart(src);
             ProtoCore.CodeModel.CodePoint cp1 = new ProtoCore.CodeModel.CodePoint
             {
                 CharNo = 25,
@@ -592,7 +593,7 @@ a 	 = MyPoint.ByAngleRadius(5.0);
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T018_Update_Inside_Class_Constructor()
         {
@@ -628,7 +629,7 @@ z = p1.addandIncr();
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T018_Update_Inside_Class_Constructor_2()
         {
@@ -683,7 +684,7 @@ test = X + Y;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T020_Update_Inside_Class_Constructor()
         {
@@ -723,7 +724,7 @@ a = a + 1;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T021_Update_Inside_Class_Constructor()
         {
@@ -780,7 +781,7 @@ x = p.a;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("SmokeTest")]
         public void T022_Defect_1459905_2()
         {
@@ -879,7 +880,7 @@ p = TestObjectA.TestObjectA(2.0);
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored")]
+        [Ignore][Category("DSDefinedClass_Ignored")]
         [Category("SmokeTest")]
         public void T023_Defect_1459789_2()
         {
@@ -913,7 +914,7 @@ a		  = a.incrementX(3.0);
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         public void T023_Defect_1459789_3()
         {
             string code = @"
@@ -948,7 +949,7 @@ b1.a2[0] = b1.a2[1];
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         public void T023_Defect_1459789_4()
         {
             string code = @"
@@ -984,7 +985,7 @@ a = { { 1.0, 2} , 3 };
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("SmokeTest")]
         public void T023_Defect_1459789_5()
         {
@@ -1027,7 +1028,7 @@ b1 = b1.create();
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("SmokeTest")]
         public void T023_Defect_1459789_6()
         {
@@ -1072,7 +1073,7 @@ b1 = b1.create();
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("Update")]
         [Category("Failure")]
         public void T023_Defect_1459789_7()
@@ -1123,7 +1124,7 @@ test1 = b1.a2[0];
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("Update")]
         public void T023_Defect_1459789_8()
         {
@@ -1177,7 +1178,7 @@ test1 = b1.a2[0];
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("Update")]
         public void T023_Defect_1459789_9()
         {
@@ -1226,7 +1227,7 @@ dummy = foo (  );
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         public void T023_Defect_1459789_10()
         {
             string err = "1467186 - sprint24 : REGRESSION: rev 3172 : Cyclic dependency detected in update cases";
@@ -1294,7 +1295,7 @@ x = a;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T024_Defect_1459470_2()
         {
@@ -1386,7 +1387,7 @@ c = a;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T025_Defect_1459704_2()
         {
@@ -1420,7 +1421,7 @@ a2 = foo(10);
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T026_Defect_1459631()
         {
@@ -1446,7 +1447,7 @@ t2 = a1.y;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("SmokeTest")]
         public void T026_Defect_1459631_2()
         {
@@ -1479,7 +1480,7 @@ t4 = a1.w;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("SmokeTest")]
         public void T026_Defect_1459631_3()
         {
@@ -1519,7 +1520,7 @@ t4 = a1.w;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("SmokeTest")]
         public void T027_Defect_1460741()
         {
@@ -1561,7 +1562,7 @@ x3 = [Imperative]
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("SmokeTest")]
         public void T027_Defect_1460741_2()
         {
@@ -1650,7 +1651,7 @@ test = X + Y;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("Update")]
         public void T030_Defect_1467236_Update_In_Class()
         {
@@ -1698,7 +1699,7 @@ x2 = derivedpoint.B;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("Update")]
         public void T030_Defect_1467236_Update_In_Class_2()
         {
@@ -1771,7 +1772,7 @@ a = { 0, 1, 2};
 e1 = foo(a);
 a = { 1, 2};
 ";
-            ProtoScript.Runners.ProtoScriptTestRunner fsr = new ProtoScript.Runners.ProtoScriptTestRunner();
+            ProtoScript.Runners.ProtoScriptRunner fsr = new ProtoScript.Runners.ProtoScriptRunner();
             String errmsg = "";
             ExecutionMirror mirror = thisTest.VerifyRunScriptSource(code, errmsg);
             thisTest.Verify("e1", new Object[] { 3, 2 });
@@ -1794,14 +1795,14 @@ a = { 0, 1, 2, 3};
 e1 = foo(a[i]);
 i = 0..2;
 ";
-            ProtoScript.Runners.ProtoScriptTestRunner fsr = new ProtoScript.Runners.ProtoScriptTestRunner();
+            ProtoScript.Runners.ProtoScriptRunner fsr = new ProtoScript.Runners.ProtoScriptRunner();
             String errmsg = "";
             ExecutionMirror mirror = thisTest.VerifyRunScriptSource(code, errmsg);
             thisTest.Verify("e1", new Object[] { 2, 1, 2 });
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T031_Defect_1467302_3()
         {
@@ -1821,7 +1822,7 @@ i = 1..2;
 e1 = A.A().foo(i);
 i = 0..2;
 ";
-            ProtoScript.Runners.ProtoScriptTestRunner fsr = new ProtoScript.Runners.ProtoScriptTestRunner();
+            ProtoScript.Runners.ProtoScriptRunner fsr = new ProtoScript.Runners.ProtoScriptRunner();
             String errmsg = "";
             ExecutionMirror mirror = thisTest.VerifyRunScriptSource(code, errmsg); 
             
@@ -1841,7 +1842,7 @@ i = 0..2;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T032_Defect_1467335_Update_In_class_Constructor()
         {
@@ -1861,7 +1862,7 @@ i = 1..2;
 e1 = A.A().foo(i);
 i = 0..2;
 ";
-            ProtoScript.Runners.ProtoScriptTestRunner fsr = new ProtoScript.Runners.ProtoScriptTestRunner();
+            ProtoScript.Runners.ProtoScriptRunner fsr = new ProtoScript.Runners.ProtoScriptRunner();
             String errmsg = "";
             ExecutionMirror mirror = thisTest.VerifyRunScriptSource(code, errmsg);
 
@@ -1881,7 +1882,7 @@ i = 0..2;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T033_Defect_1467187_Update_In_class_collection_property()
         {
@@ -1911,14 +1912,14 @@ test = p1.X;
 dummy = p1.foo(2);
 //expected test to update to '3'
 ";
-            ProtoScript.Runners.ProtoScriptTestRunner fsr = new ProtoScript.Runners.ProtoScriptTestRunner();
+            ProtoScript.Runners.ProtoScriptRunner fsr = new ProtoScript.Runners.ProtoScriptRunner();
             String errmsg = "";
             ExecutionMirror mirror = thisTest.VerifyRunScriptSource(code, errmsg);
             thisTest.Verify("test", 3.0);
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T033_Defect_1467187_Update_In_class_collection_property_2()
         {
@@ -1938,14 +1939,14 @@ b1 = B.B ( 1, {1.0, 2.0} );
 test1 = b1.a2[0];
 b1.a2[0] = b1.a2[1];
 ";
-            ProtoScript.Runners.ProtoScriptTestRunner fsr = new ProtoScript.Runners.ProtoScriptTestRunner();
+            ProtoScript.Runners.ProtoScriptRunner fsr = new ProtoScript.Runners.ProtoScriptRunner();
             String errmsg = "";
             ExecutionMirror mirror = thisTest.VerifyRunScriptSource(code, errmsg);
             thisTest.Verify("test1", 2.0);
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         [Category("Failure")]
         public void T033_Defect_1467187_Update_In_class_collection_property_3()
@@ -1983,14 +1984,14 @@ test = p1.X;
 dummy = p1.foo({1,1,1,1});
 p1.X[0..1] = -1;
 ";
-            ProtoScript.Runners.ProtoScriptTestRunner fsr = new ProtoScript.Runners.ProtoScriptTestRunner();
+            ProtoScript.Runners.ProtoScriptRunner fsr = new ProtoScript.Runners.ProtoScriptRunner();
             String errmsg = "MAGN-4021 Update issue with collection property in nested imperative scope";
             ExecutionMirror mirror = thisTest.VerifyRunScriptSource(code, errmsg);
             thisTest.Verify("test", new Object[] { -1, -1, 2, 2 });
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         [Category("Failure")]
         public void T034_UpdaetStaticProperty()
@@ -2036,7 +2037,7 @@ q = a;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored")]
+        [Ignore][Category("DSDefinedClass_Ignored")]
         [Category("Update")]
         public void T036_Defect_1467491()
         {

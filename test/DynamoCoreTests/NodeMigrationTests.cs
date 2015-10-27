@@ -790,7 +790,15 @@ namespace Dynamo.Tests
         {
             OpenModel(GetDynPath("TestNumberRange.dyn"));
 
-            AssertPreviewValue("b2b256b2-ab76-428c-93be-3ad03fd8e527", new int[] {1, 2, 3, 4, 5});
+            AssertPreviewValue("b2b256b2-ab76-428c-93be-3ad03fd8e527", new int[] { 1, 2, 3, 4, 5 });
+        }
+
+        [Test]
+        public void TestNumberSequence()
+        {
+            OpenModel(GetDynPath("TestNumberSequence.dyn"));
+
+            AssertPreviewValue("0d42e506-7463-410e-8273-6aa1020c298d", new int[] { 2, 4, 6 });
         }
 
         [Test]
@@ -1919,6 +1927,23 @@ namespace Dynamo.Tests
             TestMigration("TestMigration_GroupByKey.dyn");
         }
 
+        [Test]
+        public void TestMigration_GroupByKeyUI()
+        {
+            TestMigration("TestMigration_GroupByKeyUI.dyn");
+        }
+
+        [Test]
+        public void TestMigration_SortByKey()
+        {
+            TestMigration("TestMigration_SortByKey.dyn");
+        }
+
+        [Test]
+        public void TestMigration_SortByKeyUI()
+        {
+            TestMigration("TestMigration_SortByKeyUI.dyn");
+        }
 
         #endregion
 

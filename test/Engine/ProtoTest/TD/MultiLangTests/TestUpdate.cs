@@ -7,15 +7,12 @@ namespace ProtoTest.TD.MultiLangTests
 {
     class TestUpdate : ProtoTestBase
     {
-        ProtoScript.Config.RunConfiguration runnerConfig;
         string testPath = "..\\..\\..\\test\\Engine\\ProtoTest\\ImportFiles\\";
         ProtoScript.Runners.DebugRunner fsr;
 
         public override void Setup()
         {
             base.Setup();
-            runnerConfig = new ProtoScript.Config.RunConfiguration();
-            runnerConfig.IsParrallel = false;
             fsr = new ProtoScript.Runners.DebugRunner(core);
         }
 
@@ -118,7 +115,7 @@ b1 = a1.OverloadedAdd(t1);
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("SmokeTest")]
         public void T05_Update_Class_Instance_Argument()
         {
@@ -386,7 +383,7 @@ x = [Imperative]
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_Redundant")]
+        [Ignore][Category("DSDefinedClass_Ignored_Redundant")]
         [Category("SmokeTest")]
         public void T14_Defect_1461209_3()
         {
@@ -411,7 +408,7 @@ a2 = y.foo(1);
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_Redundant")]
+        [Ignore][Category("DSDefinedClass_Ignored_Redundant")]
         public void T14_Defect_1461209_4()
         {
             string code = @"
@@ -648,7 +645,7 @@ y = foo (x );
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
+        [Ignore][Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
         [Category("SmokeTest")]
         public void T16_Defect_1460623_4()
         {
@@ -725,7 +722,7 @@ a1 = 5;
  public void T18_Update_Variables_In_Inner_Assoc()
         {
             string src = string.Format("{0}{1}", testPath, "T18_Update_Variables_In_Inner_Assoc.ds");
-            fsr.LoadAndPreStart(src, runnerConfig);
+            fsr.LoadAndPreStart(src);
             ProtoCore.CodeModel.CodePoint cp = new ProtoCore.CodeModel.CodePoint
             {
                 CharNo = 8,
@@ -813,7 +810,7 @@ b = c + 3;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
+        [Ignore][Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
         [Category("Update")]
         public void T19_Update_Class_Properties_Thru_Methods()
         {
@@ -945,7 +942,8 @@ t2 = y2[1];
             // Tracked in: http://adsk-oss.myjetbrains.com/youtrack/issue/MAGN-4086
             string errmsg = "MAGN-4086: Update of class instance by updating its property is not propagating the proper update";
             string code = @"
-import(""FFITarget.dll"");
+import(""FFITarget.dll"");
+
 def foo ( a : ClassFunctionality) 
 {
     return = a.IntVal;
@@ -1023,7 +1021,7 @@ c;
 
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("SmokeTest")]
         public void T22_Update_Class_Instance()
         {
@@ -1446,7 +1444,7 @@ x = [Associative]
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("SmokeTest")]
         [Category("ModifierBlock")]
         public void T27_Modifier_Stack_With_Different_Types()
@@ -1487,7 +1485,7 @@ x = [Associative]
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("SmokeTest")]
         [Category("ModifierBlock")] 
         public void T27_Modifier_Stack_With_Different_Types_2()
@@ -1529,7 +1527,7 @@ x = [Associative]
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("SmokeTest")]
         [Category("Failure")]
         [Category("ModifierBlock")] [Category("Failure")]
@@ -1575,7 +1573,7 @@ x = foo ();
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("ModifierBlock")] [Category("Failure")]
         public void T27_Modifier_Stack_Inside_Class()
         {
@@ -1629,7 +1627,7 @@ y = a1.a;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("Failure")]
         [Category("ModifierBlock")] [Category("Failure")]
         public void T27_Modifier_Stack_Inside_Class_2()
@@ -1690,7 +1688,7 @@ y = { a1.a1, a1.a2, a1.a3, a1.a4, a1.a5, a1.a6, a1.a8 };
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("ModifierBlock")]
         public void T27_Modifier_Stack_Inside_Class_3()
         {
@@ -1785,7 +1783,7 @@ xa9 = ax.a9;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("ModifierBlock")]
         public void T27_Modifier_Stack_Inside_Class_4()
         {
@@ -1879,7 +1877,7 @@ b = {
         public void T27_Modifier_Stack_Update()
         {
             string src = string.Format("{0}{1}", testPath, "T27_Modifier_Stack_Update.ds");
-            fsr.LoadAndPreStart(src, runnerConfig);
+            fsr.LoadAndPreStart(src);
             ProtoCore.CodeModel.CodePoint cp1 = new ProtoCore.CodeModel.CodePoint
             {
                 CharNo = 8,
@@ -1944,7 +1942,7 @@ b1 = 2;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("SmokeTest")]
         [Category("ModifierBlock")]
         public void T27_Modifier_Stack_Update_3()
@@ -2151,7 +2149,7 @@ b = a;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("SmokeTest")]
         [Category("ModifierBlock")] 
         public void T27_Modifier_Stack_Update_6()
@@ -2185,7 +2183,7 @@ y = 2;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("SmokeTest")]
         [Category("ModifierBlock")] 
         public void T27_Modifier_Stack_With_Inline_Condition()
@@ -2232,7 +2230,7 @@ x = a == 2 ? true : false;
 
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("SmokeTest")]
         [Category("ModifierBlock")]
         public void T27_Modifier_Stack_With_Range_Expr()
@@ -2455,7 +2453,7 @@ c = [Imperative]
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("Update")]
         public void T31_Defect_1459777_4()
         {
@@ -2487,7 +2485,7 @@ z2 = z;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
+        [Ignore][Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
         [Category("Failure")]
         [Category("Update")]
         public void T31_Defect_1459777_5()
@@ -2517,7 +2515,7 @@ x = B.B(y);
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
+        [Ignore][Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
         [Category("Failure")]
         [Category("Update")]
         public void T31_Defect_1459777_6()
@@ -2640,7 +2638,7 @@ z1 = y1;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("SmokeTest")]
         public void T33_Defect_1466107()
         {
@@ -2673,7 +2671,7 @@ a1.a = 2;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("Update")]
         public void T33_Defect_1466107_2()
         {
@@ -2734,7 +2732,7 @@ x = [Imperative]
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored")]
+        [Ignore][Category("DSDefinedClass_Ignored")]
         [Category("SmokeTest")]
         public void T34_Defect_DNL_1463327_2()
         {
@@ -2827,7 +2825,7 @@ a = foo();
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         public void T35_Defect_DNL_1463700_2()
         {
             //Assert.Fail("1467194 - Sprint 25 - rev 3207[Regression] Regressions created by array copy constructions ");
@@ -3086,7 +3084,7 @@ b;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("Update")]
         public void T41_Defect_1467072_Class_Update()
         {
@@ -3120,7 +3118,7 @@ gf = 2;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
+        [Ignore][Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
         [Category("Update")]
         public void T41_Defect_1467072_Class_Update_2()
         {
@@ -3351,7 +3349,7 @@ t[1] = a[1];
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_Redundant")]
+        [Ignore][Category("DSDefinedClass_Ignored_Redundant")]
         [Category("Update")]
         public void T46_Defect_1467275_3()
         {
@@ -3541,7 +3539,7 @@ b = 0;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("SmokeTest")]
         public void T50_Defect_1466076()
         {
@@ -3689,7 +3687,7 @@ a = a + 1;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("SmokeTest")]
         [Category("ModifierBlock")]
         public void T54_Defect_1467185_Modifier_Stack()
@@ -3748,7 +3746,7 @@ a =
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("SmokeTest")]
         [Category("ModifierBlock")] 
         public void T54_Defect_1467185_Modifier_Stack_2()
@@ -3795,7 +3793,7 @@ a8 = B.B(a1).bfoo(foo ( a1[a3] ) ); // works fine";
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_ModifierBlock")]
+        [Ignore][Category("DSDefinedClass_Ignored_ModifierBlock")]
         [Category("SmokeTest")]
         [Category("ModifierBlock")] 
         public void T54_Defect_1467185_Modifier_Stack_3()
@@ -3900,7 +3898,7 @@ x = a > 1 ? a : null; ";
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_InvalidTest_NoInline")]
+        [Ignore][Category("DSDefinedClass_Ignored_InvalidTest_NoInline")]
         [Category("SmokeTest")]
         [Category("Failure")]
         public void T57_Defect_1467399()
@@ -3929,7 +3927,7 @@ a1 = foo ( a1);
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_InvalidTest_NoInline")]
+        [Ignore][Category("DSDefinedClass_Ignored_InvalidTest_NoInline")]
         [Category("SmokeTest")]
         public void T57_Defect_1467399_2()
         {
@@ -3956,7 +3954,7 @@ a1.a = -1;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_InvalidTest_NoInline")]
+        [Ignore][Category("DSDefinedClass_Ignored_InvalidTest_NoInline")]
         [Category("SmokeTest")]
         public void T57_Defect_1467399_4()
         {
@@ -4140,7 +4138,7 @@ y2 = { y1[0].IntVal, y1[1].IntVal };
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
+        [Ignore][Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
         [Category("SmokeTest")]
         public void T61_Defect_1467410_Update_In_Class_Properties()
         {
@@ -4181,7 +4179,7 @@ z2 = a.Z;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
+        [Ignore][Category("DSDefinedClass_Ignored_UpdateWithinDSClass")]
         [Category("SmokeTest")]
         public void T61_Defect_1467410_Update_In_Class_Properties_2()
         {
@@ -4713,7 +4711,7 @@ b;
 
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("SmokeTest")]
         public void T64_1467161_Update_ssie_with_class_member_call_1()
         {
@@ -4748,7 +4746,7 @@ r3 = b.foo(1);//after boo is called, r2 is updated, which is not expected
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassInheritance")]
         [Category("SmokeTest")]
         public void T64_1467161_Update_issue_with_class_member_call_2()
         {
@@ -4832,7 +4830,7 @@ pt2;
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_Redundant")]
+        [Ignore][Category("DSDefinedClass_Ignored_Redundant")]
         [Category("SmokeTest")]
         public void T65_1467495_FalseCyclicDependancy_3()
         {
@@ -4868,7 +4866,7 @@ pt3 = pt1.XPlusY(pt1);
         }
 
         [Test]
-        [Category("DSDefinedClass_Ignored_Redundant")]
+        [Ignore][Category("DSDefinedClass_Ignored_Redundant")]
         [Category("SmokeTest")]
         public void T65_1467495_FalseCyclicDependancy_4()
         {
@@ -6336,7 +6334,7 @@ x1 = 4;
 
 
         [Test]
-        [Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
+        [Ignore][Category("DSDefinedClass_Ignored_DSDefinedClassSemantics")]
         [Category("SmokeTest")]
         public void T88_1461985_Update_In_Nested_Blocks_2()
         {

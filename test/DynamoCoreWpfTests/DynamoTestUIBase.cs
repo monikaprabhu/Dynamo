@@ -5,9 +5,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Dynamo;
+using Dynamo.Configuration;
 using Dynamo.Controls;
 using Dynamo.Models;
 using Dynamo.ViewModels;
+using Dynamo.Wpf.ViewModels.Watch3D;
 using DynamoShapeManager;
 using NUnit.Framework;
 using TestServices;
@@ -62,7 +64,8 @@ namespace DynamoCoreWpfTests
                 {
                     StartInTestMode = true,
                     PathResolver = pathResolver,
-                    GeometryFactoryPath = preloader.GeometryFactoryPath
+                    GeometryFactoryPath = preloader.GeometryFactoryPath,
+                    ProcessMode = Dynamo.Core.Threading.TaskProcessMode.Synchronous
                 });
 
             ViewModel = DynamoViewModel.Start(

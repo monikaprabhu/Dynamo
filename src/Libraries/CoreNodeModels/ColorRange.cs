@@ -20,6 +20,18 @@ namespace DSCoreNodesUI
     [NodeCategory("Core.Color.Create")]
     [NodeDescription("ColorRangeDescription",typeof(DSCoreNodesUI.Properties.Resources))]
     [NodeSearchTags("ColorRangeSearchTags", typeof(DSCoreNodesUI.Properties.Resources))]
+
+    [InPortNames("colors", "indices", "value")]
+    [InPortTypes("Color[]", "double[]", "double")]
+    [InPortDescriptionsAttribute(typeof(Resources),
+        "ColorRangePortDataColorsToolTip",
+        "ColorRangePortDataIndicesToolTip",
+        "ColorRangePortDataValueToolTip")]
+    [OutPortNames("color")]
+    [OutPortTypes("Color")]
+    [OutPortDescriptions(typeof(Resources),
+        "ColorRangePortDataResultToolTip")]
+
     public class ColorRange : NodeModel
     {
         public event Action RequestChangeColorRange;
@@ -31,7 +43,7 @@ namespace DSCoreNodesUI
 
         public ColorRange()
         {
-            InitializePorts();
+            RegisterAllPorts();
 
             this.PropertyChanged += ColorRange_PropertyChanged;
             foreach (var port in InPorts)
@@ -47,19 +59,9 @@ namespace DSCoreNodesUI
             OnRequestChangeColorRange();
         }
 
-        protected virtual void InitializePorts()
-        {
-            InPortData.Add(new PortData("colors", Resources.ColorRangePortDataColorsToolTip));
-            InPortData.Add(new PortData("indices", Resources.ColorRangePortDataIndicesToolTip));
-            InPortData.Add(new PortData("value", Resources.ColorRangePortDataValueToolTip));
-            OutPortData.Add(new PortData("color", Resources.ColorRangePortDataResultToolTip));
-
-            RegisterAllPorts();
-        }
-
         void ColorRange_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName != "IsUpdated")
+            if (e.PropertyName != "CachedValue")
                 return;
 
             if (InPorts.Any(x => x.Connectors.Count == 0))
@@ -70,15 +72,34 @@ namespace DSCoreNodesUI
 
         public override IEnumerable<AssociativeNode> BuildOutputAst(List<AssociativeNode> inputAstNodes)
         {
-            var buildColorRangeNode =
+            if (!HasConnectedInput(0) && !HasConnectedInput(1) && !HasConnectedInput(2))
+            {
+                return new[] {AstFactory.BuildAssignment(GetAstIdentifierForOutputIndex(0), AstFactory.BuildNullNode())};
+            }
+            AssociativeNode buildColorRangeNode = null;
+
+            // If either of the first two inputs does not have a connector
+            // then build a default color range.
+            if (!HasConnectedInput(0) || !HasConnectedInput(1))
+            {
+                buildColorRangeNode =
+                    AstFactory.BuildFunctionCall(
+                        new Func<ColorRange1D>(ColorRange1D.Default),
+                        new List<AssociativeNode>());
+            }
+            else
+            {
+                buildColorRangeNode =
                 AstFactory.BuildFunctionCall(
                     new Func<List<Color>, List<double>, ColorRange1D>(ColorRange1D.ByColorsAndParameters),
-                    new List<AssociativeNode>(){inputAstNodes[0], inputAstNodes[1]});
+                    new List<AssociativeNode>() { inputAstNodes[0], inputAstNodes[1] });
+            }
 
+            // The last inputAstNode is assumed to be the value.
             var functionCall =
                 AstFactory.BuildFunctionCall(
                     new Func<ColorRange1D,double, Color>(ColorRange1D.GetColorAtParameter),
-                    new List<AssociativeNode>(){buildColorRangeNode, inputAstNodes[2]});
+                    new List<AssociativeNode>(){buildColorRangeNode, inputAstNodes.Last()});
 
             return new[]
             {
@@ -92,7 +113,7 @@ namespace DSCoreNodesUI
             List<double> parameters;
 
             // If there are colors supplied
-            if (InPorts[0].Connectors.Any())
+            if (HasConnectedInput(0))
             {
                 var colorsNode = InPorts[0].Connectors[0].Start.Owner;
                 var colorsIndex = InPorts[0].Connectors[0].Start.Index;
@@ -102,11 +123,12 @@ namespace DSCoreNodesUI
             }
             else
             {
-                colors = DefaultColorRanges.Analysis;
+                colors = new List<Color>();
+                colors.AddRange(DefaultColorRanges.Analysis);
             }
 
             // If there are indices supplied
-            if (InPorts[1].Connectors.Any())
+            if (HasConnectedInput(1))
             {
                 var valuesNode = InPorts[1].Connectors[0].Start.Owner;
                 var valuesIndex = InPorts[1].Connectors[0].Start.Index;

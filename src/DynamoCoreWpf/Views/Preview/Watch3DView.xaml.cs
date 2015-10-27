@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using System.Windows.Threading;
 using Autodesk.DesignScript.Interfaces;
 using Dynamo.Wpf.ViewModels.Watch3D;
-using Dynamo.Wpf.Views.Preview;
 using HelixToolkit.Wpf.SharpDX;
+using SharpDX;
 using GeometryModel3D = HelixToolkit.Wpf.SharpDX.GeometryModel3D;
 using Model3D = HelixToolkit.Wpf.SharpDX.Model3D;
 using Point = System.Windows.Point;
@@ -18,7 +20,7 @@ namespace Dynamo.Controls
     /// <summary>
     /// Interaction logic for WatchControl.xaml
     /// </summary>
-    public partial class Watch3DView : IWatch3DView
+    public partial class Watch3DView
     {
         #region private members
 
@@ -56,7 +58,13 @@ namespace Dynamo.Controls
 
             CompositionTarget.Rendering -= CompositionTargetRenderingHandler;
 
+            if (ViewModel == null) return;
+
             ViewModel.RequestAttachToScene -= ViewModelRequestAttachToSceneHandler;
+            ViewModel.RequestCreateModels -= RequestCreateModelsHandler;
+            ViewModel.RequestViewRefresh -= RequestViewRefreshHandler;
+            ViewModel.RequestClickRay -= GetClickRay;
+            ViewModel.RequestZoomToFit -= ViewModel_RequestZoomToFit;
         }
 
         private void RegisterButtonHandlers()
@@ -65,6 +73,24 @@ namespace Dynamo.Controls
             MouseLeftButtonUp += MouseButtonIgnoreHandler;
             MouseRightButtonUp += view_MouseRightButtonUp;
             PreviewMouseRightButtonDown += view_PreviewMouseRightButtonDown;
+        }
+
+        private void RegisterViewEventHandlers()
+        {
+            watch_view.MouseDown += (sender, args) =>
+            {
+                ViewModel.OnViewMouseDown(sender, args);
+            };
+
+            watch_view.MouseUp += (sender, args) =>
+            {
+                ViewModel.OnViewMouseUp(sender, args);
+            };
+
+            watch_view.MouseMove += (sender, args) =>
+            {
+                ViewModel.OnViewMouseMove(sender, args);
+            };
         }
 
         private void UnregisterButtonHandlers()
@@ -88,21 +114,27 @@ namespace Dynamo.Controls
         {
             ViewModel = DataContext as HelixWatch3DViewModel;
 
+            if (ViewModel == null) return;
+
             CompositionTarget.Rendering += CompositionTargetRenderingHandler;
 
             RegisterButtonHandlers();
 
-            if (ViewModel == null)
-            {
-                return;
-            }
+            RegisterViewEventHandlers();
 
             ViewModel.RequestAttachToScene += ViewModelRequestAttachToSceneHandler;
             ViewModel.RequestCreateModels += RequestCreateModelsHandler;
             ViewModel.RequestViewRefresh += RequestViewRefreshHandler;
+            ViewModel.RequestClickRay += GetClickRay;
+            ViewModel.RequestZoomToFit += ViewModel_RequestZoomToFit;
         }
 
-        void RequestViewRefreshHandler()
+        private void ViewModel_RequestZoomToFit(BoundingBox bounds)
+        {
+            watch_view.ZoomExtents(bounds.ToRect3D());
+        }
+
+        private void RequestViewRefreshHandler()
         {
             View.InvalidateRender();
         }
@@ -121,21 +153,9 @@ namespace Dynamo.Controls
 
         private void ViewModelRequestAttachToSceneHandler(Model3D model3D)
         {
-            if (model3D is GeometryModel3D)
+            if (!model3D.IsAttached && View != null && View.RenderHost != null)
             {
-                if (View != null && View.RenderHost != null && !model3D.IsAttached)
-                {
-                    model3D.Attach(View.RenderHost);
-                }
-            }
-            else
-            {
-                //This is for Directional Light. When a watch is attached,
-                //Directional light has to be attached one more time.
-                if (!model3D.IsAttached && View != null && View.RenderHost != null)
-                {
-                    model3D.Attach(View.RenderHost);
-                }
+                model3D.Attach(View.RenderHost);
             }
         }
 
@@ -157,15 +177,8 @@ namespace Dynamo.Controls
 
         private void CompositionTargetRenderingHandler(object sender, EventArgs e)
         {
-            var sceneBounds = watch_view.FindBounds();
-            ViewModel.UpdateNearClipPlaneForSceneBounds(sceneBounds);
-
+            ViewModel.UpdateNearClipPlane();
             ViewModel.ComputeFrameUpdate();
-        }
-
-        private void OnZoomToFitClickedHandler(object sender, RoutedEventArgs e)
-        {
-            watch_view.ZoomExtents();
         }
 
         private void MouseButtonIgnoreHandler(object sender, MouseButtonEventArgs e)
@@ -192,25 +205,11 @@ namespace Dynamo.Controls
 
         #endregion
 
-        #region interface methods
-
         public Ray3D GetClickRay(MouseEventArgs mouseButtonEventArgs)
         {
             var mousePos = mouseButtonEventArgs.GetPosition(this);
 
             return View.Point2DToRay3D(new Point(mousePos.X, mousePos.Y));
         }
-
-        public void AddGeometryForRenderPackages(IEnumerable<IRenderPackage> packages)
-        {
-            ViewModel.OnRequestCreateModels(packages);
-        }
-
-        public void DeleteGeometryForIdentifier(string identifier, bool requestUpdate = true)
-        {
-            ViewModel.DeleteGeometryForIdentifier(identifier, requestUpdate);
-        }
-
-        #endregion
     }
 }

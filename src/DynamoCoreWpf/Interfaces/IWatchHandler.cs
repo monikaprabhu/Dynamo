@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Globalization;
 using System.Linq;
+using Dynamo.Configuration;
 using Dynamo.ViewModels;
 using DynamoUnits;
 using ProtoCore.DSASM;
@@ -69,7 +70,7 @@ namespace Dynamo.Interfaces
                 else
                 {
                     int typeId = runtimeCore.DSExecutable.TypeSystem.GetType(stackValue);
-                    stringValue = runtimeCore.DSExecutable.classTable.ClassNodes[typeId].name;
+                    stringValue = runtimeCore.DSExecutable.classTable.ClassNodes[typeId].Name;
                 }
                 node = new WatchViewModel(stringValue, tag);
             }

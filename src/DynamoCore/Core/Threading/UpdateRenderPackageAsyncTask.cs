@@ -11,7 +11,7 @@ using Dynamo.Engine;
 using Dynamo.Models;
 using Dynamo.Properties;
 using Dynamo.Interfaces;
-
+using Dynamo.Visualization;
 using ProtoCore.Mirror;
 
 namespace Dynamo.Core.Threading
@@ -38,9 +38,9 @@ namespace Dynamo.Core.Threading
     /// 
     class UpdateRenderPackageAsyncTask : AsyncTask
     {
-        private const byte DefR = 101;
-        private const byte DefG = 86;
-        private const byte DefB = 130;
+        private const byte DefR = 0;
+        private const byte DefG = 0;
+        private const byte DefB = 0;
         private const byte DefA = 255;
         private const byte MidTone = 180;
 
@@ -89,7 +89,7 @@ namespace Dynamo.Core.Threading
                 throw new ArgumentNullException("initParams.DrawableIds");
 
             var nodeModel = initParams.Node;
-            if (!nodeModel.IsUpdated && !initParams.ForceUpdate)
+            if (!nodeModel.WasInvolvedInExecution && !initParams.ForceUpdate)
                 return false; // Not has not been updated at all.
 
             // If a node is in either of the following states, then it will not 

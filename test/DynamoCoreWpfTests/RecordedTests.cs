@@ -17,6 +17,7 @@ using DynamoShapeManager;
 using NUnit.Framework;
 using Dynamo.UI;
 using System.Reflection;
+using Dynamo.Configuration;
 using TestServices;
 
 using PythonNodeModels;
@@ -191,7 +192,8 @@ namespace DynamoCoreWpfTests
                 {
                     StartInTestMode = true,
                     PathResolver = pathResolver,
-                    GeometryFactoryPath = geometryFactoryPath
+                    GeometryFactoryPath = geometryFactoryPath,
+                    ProcessMode = Dynamo.Core.Threading.TaskProcessMode.Synchronous
                 });
 
             // Create the DynamoViewModel to control the view

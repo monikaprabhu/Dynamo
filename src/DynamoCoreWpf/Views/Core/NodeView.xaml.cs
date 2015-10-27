@@ -99,13 +99,12 @@ namespace Dynamo.Controls
         /// <param name="eventArgs"></param>
         private void OnSizeChanged(object sender, EventArgs eventArgs)
         {
-            if (ViewModel != null)
+            if (ViewModel == null || ViewModel.PreferredSize.HasValue) return;
+
+            var size = new [] { ActualWidth, nodeBorder.ActualHeight };
+            if (ViewModel.SetModelSizeCommand.CanExecute(size))
             {
-                var size = new double[] { ActualWidth, nodeBorder.ActualHeight };
-                if (ViewModel.SetModelSizeCommand.CanExecute(size))
-                {
-                    ViewModel.SetModelSizeCommand.Execute(size);
-                }
+                ViewModel.SetModelSizeCommand.Execute(size);
             }
         }
 
@@ -127,8 +126,15 @@ namespace Dynamo.Controls
             // can be sent as a result of DataContext becoming DisconnectedItem too,
             // but ViewModel should not be updated in that case (hence the null-check).
             // 
-            if (null == ViewModel)
-                ViewModel = e.NewValue as NodeViewModel;
+            if (null != ViewModel) return;
+ 
+            ViewModel = e.NewValue as NodeViewModel;
+            if (!ViewModel.PreferredSize.HasValue) return;
+
+            var size = ViewModel.PreferredSize.Value;
+            nodeBorder.Width = size.Width;
+            nodeBorder.Height = size.Height;
+            nodeBorder.RenderSize = size;
         }
 
         private void OnNodeViewLoaded(object sender, RoutedEventArgs e)
@@ -144,9 +150,8 @@ namespace Dynamo.Controls
             ViewModel.RequestShowNodeRename += ViewModel_RequestShowNodeRename;
             ViewModel.RequestsSelection += ViewModel_RequestsSelection;
             ViewModel.NodeLogic.PropertyChanged += NodeLogic_PropertyChanged;
-           
         }
-      
+
         void NodeLogic_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
@@ -155,19 +160,16 @@ namespace Dynamo.Controls
                     ViewModel.SetLacingTypeCommand.RaiseCanExecuteChanged();
                     break;
 
-                case "IsUpdated":
-                    HandleCacheValueUpdated();
+                case "CachedValue":
+                    CachedValueChanged();
                     break;
             }
         }
 
         /// <summary>
-        /// Whenever property "NodeModel.IsUpdated" is set to true, this method 
-        /// is invoked. It will result in preview control updated, if the control 
-        /// is currently visible. Otherwise this call will be ignored.
+        /// Called when the NodeModel's CachedValue property is updated
         /// </summary>
-        /// 
-        private void HandleCacheValueUpdated()
+        private void CachedValueChanged()
         {
             Dispatcher.BeginInvoke(new Action(delegate
             {
@@ -208,8 +210,7 @@ namespace Dynamo.Controls
                     DynamoSelection.Instance.ClearSelection();
                 }
 
-                if (!DynamoSelection.Instance.Selection.Contains(ViewModel.NodeLogic))
-                    DynamoSelection.Instance.Selection.Add(ViewModel.NodeLogic);
+                DynamoSelection.Instance.Selection.AddUnique(ViewModel.NodeLogic);
             }
             else
             {

@@ -13,10 +13,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Practices.Prism.ViewModel;
 using Dynamo.Wpf.Properties;
-using Dynamo.Wpf.Views.Gallery;
-using Dynamo.Wpf.ViewModels.Core;
-using System.Linq;
-using Dynamo.Services;
+using Dynamo.Logging;
+using Dynamo.Configuration;
 
 namespace Dynamo.UI.Controls
 {
@@ -175,21 +173,15 @@ namespace Dynamo.UI.Controls
                 ClickAction = StartPageListItem.Action.RegularCommand
             });
 
-            references.Add(new StartPageListItem(Resources.StartPageAdvancedTutorials, "icon-reference.png")
+            references.Add(new StartPageListItem(Resources.StartPageDynamoPrimer, "icon-reference.png")
             {
-                ContextData = Configurations.DynamoAdvancedTutorials,
+                ContextData = Configurations.DynamoPrimer,
                 ClickAction = StartPageListItem.Action.ExternalUrl
             });
 
             references.Add(new StartPageListItem(Resources.StartPageVideoTutorials, "icon-video.png")
             {
                 ContextData = Configurations.DynamoVideoTutorials,
-                ClickAction = StartPageListItem.Action.ExternalUrl
-            });
-
-            references.Add(new StartPageListItem(Resources.StartPageMoreSamples, "icons-more-samples.png")
-            {
-                ContextData = Configurations.DynamoMoreSamples,
                 ClickAction = StartPageListItem.Action.ExternalUrl
             });
 

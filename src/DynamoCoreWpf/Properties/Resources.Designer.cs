@@ -188,6 +188,24 @@ namespace Dynamo.Wpf.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There was an error creating a background preview in Dynamo. This could be due to a lack of graphics resources on your machine. See the log for more information..
+        /// </summary>
+        public static string BackgroundPreviewCreationFailureMessage {
+            get {
+                return ResourceManager.GetString("BackgroundPreviewCreationFailureMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default Background Preview.
+        /// </summary>
+        public static string BackgroundPreviewDefaultName {
+            get {
+                return ResourceManager.GetString("BackgroundPreviewDefaultName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Background Preview.
         /// </summary>
         public static string BackgroundPreviewName {
@@ -1922,6 +1940,15 @@ namespace Dynamo.Wpf.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show Grid.
+        /// </summary>
+        public static string DynamoViewViewMenuShowGrid {
+            get {
+                return ResourceManager.GetString("DynamoViewViewMenuShowGrid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Zoom.
         /// </summary>
         public static string DynamoViewViewMenuZoom {
@@ -2179,6 +2206,15 @@ namespace Dynamo.Wpf.Properties {
         public static string GroupContextMenuFont {
             get {
                 return ResourceManager.GetString("GroupContextMenuFont", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cleanup Node Layout.
+        /// </summary>
+        public static string GroupContextMenuGraphLayout {
+            get {
+                return ResourceManager.GetString("GroupContextMenuGraphLayout", resourceCulture);
             }
         }
         
@@ -4206,6 +4242,15 @@ namespace Dynamo.Wpf.Properties {
         public static string StartPageDiscussionForum {
             get {
                 return ResourceManager.GetString("StartPageDiscussionForum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dynamo Primer.
+        /// </summary>
+        public static string StartPageDynamoPrimer {
+            get {
+                return ResourceManager.GetString("StartPageDynamoPrimer", resourceCulture);
             }
         }
         
