@@ -99,28 +99,13 @@ namespace Dynamo.ViewModels
             }
         }
 
-        public bool IsInput
+        public bool? IsInputNode
         {
             get
             {
                 return nodeLogic.IsInputNode;
             }
-        }
-
-        public bool IsSelectedInput
-        {
-            get
-            {
-                return nodeLogic.IsSelectedInput;
-            }
-            set
-            {
-                if (nodeLogic.IsSelectedInput != value)
-                {
-                    nodeLogic.IsSelectedInput = value;
-                    RaisePropertyChanged("IsSelectedInput");
-                }
-            }
+            set { nodeLogic.IsInputNode = value; }
         }
 
         public string NickName
@@ -339,12 +324,14 @@ namespace Dynamo.ViewModels
         public bool IsFrozen
         {
             get
-            {              
+            {
+                RaisePropertyChanged("IsFrozenExplicitly");
+                RaisePropertyChanged("CanToggleFrozen");
                 return NodeModel.IsFrozen;
             }
             set
             {
-                NodeModel.IsFrozen = value;                
+                NodeModel.IsFrozen = value;                    
             }
         }
         
@@ -636,7 +623,10 @@ namespace Dynamo.ViewModels
                 case "CanUpdatePeriodically":
                     RaisePropertyChanged("EnablePeriodicUpdate");
                     RaisePropertyChanged("PeriodicUpdateVisibility");
-                    break;                 
+                    break;
+                case "IsFrozen":
+                    RaiseFrozenPropertyChanged();
+                    break;
             }
         }
 
@@ -1052,14 +1042,37 @@ namespace Dynamo.ViewModels
                 node.IsFrozen = !node.IsFrozen;
             }
 
-            RaisePropertyChanged("IsFrozenExplicitly");
-            RaisePropertyChanged("CanToggleFrozen");
-            RaisePropertyChanged("IsFrozen");
+            RaiseFrozenPropertyChanged();
         }
 
         private bool CanToggleIsFrozen(object parameters)
         {
             return DynamoSelection.Instance.Selection.Count() == 1;
+        }
+
+        private void RaiseFrozenPropertyChanged()
+        {            
+            RaisePropertyChanged("IsFrozen");
+            RaisePropertyChangedOnDownStreamNodes();
+        }
+
+        /// <summary>
+        /// When a node is frozen, raise the IsFrozen property changed event on
+        /// all its downstream nodes, to ensure UI updates correctly.
+        /// </summary>
+        private void RaisePropertyChangedOnDownStreamNodes()
+        {
+            HashSet<NodeModel> nodes = new HashSet<NodeModel>();
+            this.nodeLogic.GetDownstreamNodes(this.nodeLogic, nodes);
+
+            foreach (var inode in nodes)
+            {
+                var current = this.WorkspaceViewModel.Nodes.FirstOrDefault(x => x.NodeLogic == inode);
+                if (current != null)
+                {
+                    current.RaisePropertyChanged("IsFrozen");
+                }
+            }
         }
 
         private void UngroupNode(object parameters)
