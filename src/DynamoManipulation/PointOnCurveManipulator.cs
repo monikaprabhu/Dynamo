@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
 using Autodesk.DesignScript.Geometry;
 using Dynamo.Graph.Nodes;
 using Dynamo.Graph.Nodes.ZeroTouch;
-using Dynamo.Nodes;
 
 namespace Dynamo.Manipulation
 {
@@ -21,9 +16,6 @@ namespace Dynamo.Manipulation
 
     class PointOnCurveManipulator : NodeManipulator
     {
-        private const double NewNodeOffsetX = 350;
-        private const double NewNodeOffsetY = 50;
-
         private Point pointOnCurve;
 
         private Curve curve;
@@ -41,6 +33,11 @@ namespace Dynamo.Manipulation
 
         #region abstract method implementation
 
+        internal override Point Origin
+        {
+            get { return pointOnCurve; }
+        }
+
         /// <summary>
         /// Returns all the gizmos supported by this manipulator
         /// </summary>
@@ -50,8 +47,7 @@ namespace Dynamo.Manipulation
         /// <returns></returns>
         protected override IEnumerable<IGizmo> GetGizmos(bool createOrUpdate)
         {
-            if (gizmo == null && !createOrUpdate)
-                yield break;
+            if (gizmo == null && !createOrUpdate) yield break;
 
             if (createOrUpdate)
             {
@@ -64,9 +60,10 @@ namespace Dynamo.Manipulation
         private void UpdateGizmo()
         {
             if (null == gizmo)
-                gizmo = new TranslationGizmo(pointOnCurve, tangent, 6);
-            else
-                gizmo.UpdateGeometry(pointOnCurve, tangent, null, null, 6);
+            {
+                gizmo = new TranslationGizmo(this, tangent, gizmoScale);
+            }
+            else gizmo.UpdateGeometry(tangent, null, null, gizmoScale);
         }
 
         protected override void AssignInputNodes()
@@ -110,12 +107,12 @@ namespace Dynamo.Manipulation
             
             //Don't cache pt directly here, need to create a copy, because 
             //pt may be GC'ed by VM.
-            pointOnCurve = Point.ByCoordinates(pt.X, pt.Y, pt.Z); 
-        
+            pointOnCurve = Point.ByCoordinates(pt.X, pt.Y, pt.Z);
+
             Active = tangent != null;
         }
 
-        protected override IEnumerable<NodeModel> OnGizmoClick(IGizmo gizmo, object hitObject)
+        protected override IEnumerable<NodeModel> OnGizmoClick(IGizmo gizmoInAction, object hitObject)
         {
             var axis = hitObject as Vector;
             if (null == axis) return null;
@@ -128,13 +125,18 @@ namespace Dynamo.Manipulation
             return new[] { inputNode };
         }
 
-        protected override Point OnGizmoMoved(IGizmo gizmo, Vector offset)
+        protected override Point OnGizmoMoved(IGizmo gizmoInAction, Vector offset)
         {
-            var newPosition = pointOnCurve.Add(offset);
-            newPosition = curve.ClosestPointTo(newPosition);
-            var param = curve.ParameterAtPoint(newPosition);
+            double param;
+            using (var offsetPosition = pointOnCurve.Add(offset))
+            {
+                using (var closestPosition = curve.ClosestPointTo(offsetPosition))
+                {
+                    param = curve.ParameterAtPoint(closestPosition);
+                }
+            }
             param = Math.Round(param, 3);
-            newPosition = curve.PointAtParameter(param);
+            var newPosition = curve.PointAtParameter(param);
             if (inputNode != null)
             {
                 dynamic uinode = inputNode;
@@ -142,6 +144,13 @@ namespace Dynamo.Manipulation
             }
 
             return newPosition;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if(tangent != null) tangent.Dispose();
+
+            base.Dispose(disposing);
         }
 
         #endregion
