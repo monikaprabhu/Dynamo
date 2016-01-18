@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-
+using System.Windows.Media;
 using Dynamo.Graph.Nodes;
 using Dynamo.Prompts;
 using Dynamo.Selection;
@@ -26,6 +26,7 @@ namespace Dynamo.Controls
         public delegate void UpdateLayoutDelegate(FrameworkElement el);       
         private NodeViewModel viewModel = null;
         private PreviewControl previewControl = null;
+        private const int previewDelay = 1000;
 
         /// <summary>
         /// If false - hides preview control until it will be explicitly shown.
@@ -331,10 +332,10 @@ namespace Dynamo.Controls
 
         private void topControl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (ViewModel == null) return;
+            if (ViewModel == null || Keyboard.Modifiers == System.Windows.Input.ModifierKeys.Control) return;
 
             var view = WpfUtilities.FindUpVisualTree<DynamoView>(this);
-            ViewModel.DynamoViewModel.ReturnFocusToSearch();
+            ViewModel.DynamoViewModel.OnRequestReturnFocusToView();
             view.mainGrid.Focus();
 
             Guid nodeGuid = ViewModel.NodeModel.GUID;
@@ -387,13 +388,16 @@ namespace Dynamo.Controls
                     PreviewControl.BindToDataSource(ViewModel.NodeModel.CachedValue);
 
                 PreviewControl.TransitionToState(PreviewControl.State.Condensed);
+
+                Dispatcher.DelayInvoke(previewDelay, ExpandPreviewControl);
             }
         }
 
         private void OnNodeViewMouseLeave(object sender, MouseEventArgs e)
         {
             // If mouse in over node/preview control or preview control is pined, we can not hide preview control.
-            if (IsMouseOver || PreviewControl.IsMouseOver || PreviewControl.StaysOpen) return;
+            if (IsMouseOver || PreviewControl.IsMouseOver || PreviewControl.StaysOpen ||
+                (Mouse.Captured != null && IsMouseInsideNodeOrPreview(e.GetPosition(this)))) return;
 
             // If it's expanded, then first condense it.
             if (PreviewControl.IsExpanded)
@@ -401,7 +405,7 @@ namespace Dynamo.Controls
                 PreviewControl.TransitionToState(PreviewControl.State.Condensed);
             }
             // If it's condensed, then try to hide it.
-            if (PreviewControl.IsCondensed)
+            if (PreviewControl.IsCondensed && Mouse.Captured == null)
             {
                 PreviewControl.TransitionToState(PreviewControl.State.Hidden);
             }
@@ -439,17 +443,20 @@ namespace Dynamo.Controls
                 {
                     if (preview.IsMouseOver)
                     {
-                        preview.TransitionToState(PreviewControl.State.Expanded);
+                        Dispatcher.DelayInvoke(previewDelay, ExpandPreviewControl);
                     }
                     if (!IsMouseOver)
                     {
-                        preview.TransitionToState(PreviewControl.State.Hidden);
+                        if (!(Mouse.Captured != null && IsMouseInsideNodeOrPreview(Mouse.GetPosition(this))))
+                        {
+                            preview.TransitionToState(PreviewControl.State.Hidden);
+                        }
                     }
                     break;
                 }
                 case PreviewControl.State.Expanded:
                 {
-                    if (!IsMouseOver || !preview.IsMouseOver)
+                    if (!IsMouseOver && !preview.IsMouseOver)
                     {
                         preview.TransitionToState(PreviewControl.State.Condensed);
                     }
@@ -458,20 +465,72 @@ namespace Dynamo.Controls
             };
         }
 
-        private void OnPreviewControlMouseEnter(object sender, MouseEventArgs e)
+        /// <summary>
+        /// If mouse is over node or preview control, then preview control is expanded.
+        /// </summary>
+        private void ExpandPreviewControl()
         {
-            if (PreviewControl.IsCondensed)
+            if ((IsMouseOver || PreviewControl.IsMouseOver) && PreviewControl.IsCondensed)
             {
                 PreviewControl.TransitionToState(PreviewControl.State.Expanded);
             }
         }
 
+        private void OnPreviewControlMouseEnter(object sender, MouseEventArgs e)
+        {
+            if (PreviewControl.IsCondensed)
+            {
+                Dispatcher.DelayInvoke(previewDelay, ExpandPreviewControl);
+            }
+        }
+
         private void OnPreviewControlMouseLeave(object sender, MouseEventArgs e)
         {
-            if (!PreviewControl.StaysOpen && !PreviewControl.IsInTransition)
+            if (!PreviewControl.StaysOpen && !PreviewControl.IsInTransition 
+                && Keyboard.Modifiers != System.Windows.Input.ModifierKeys.Control
+                && !IsMouseOver)
             {
                 PreviewControl.TransitionToState(PreviewControl.State.Condensed);
             }
+        }
+
+
+        private void OnNodeViewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (Mouse.Captured == null) return;
+
+            bool isInside = IsMouseInsideNodeOrPreview(e.GetPosition(this));
+
+            if (!isInside && previewControl.IsCondensed)
+            {
+                PreviewControl.TransitionToState(PreviewControl.State.Hidden);
+            }
+        }
+
+        /// <summary>
+        /// When Mouse is captured, all mouse events are handled by element, that captured it.
+        /// So we can't use MouseLeave/MouseEnter events.
+        /// In this case, when we want to ensure, that mouse really left node, we use HitTest.
+        /// </summary>
+        /// <param name="mousePosition">Currect position of mouse</param>
+        /// <returns>bool</returns>
+        private bool IsMouseInsideNodeOrPreview(Point mousePosition)
+        {
+            bool isInside = false;
+            VisualTreeHelper.HitTest(
+                this,
+                d =>
+                {
+                    if (d == this)
+                    {
+                        isInside = true;
+                    }
+
+                    return HitTestFilterBehavior.Stop;
+                },
+                ht => HitTestResultBehavior.Stop,
+                new PointHitTestParameters(mousePosition));
+            return isInside;
         }
 
         /// <summary>
@@ -488,6 +547,5 @@ namespace Dynamo.Controls
         }
 
         #endregion
-      
     }
 }
