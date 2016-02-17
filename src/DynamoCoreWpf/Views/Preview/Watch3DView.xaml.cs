@@ -148,6 +148,9 @@ namespace Dynamo.Controls
             ViewModel.RequestClickRay += GetClickRay;
             ViewModel.RequestCameraPosition += GetCameraPosition;
             ViewModel.RequestZoomToFit += ViewModel_RequestZoomToFit;
+
+            ViewModel.UpdateUpstream();
+            ViewModel.OnWatchExecution();
         }
 
         private void ViewModel_RequestZoomToFit(BoundingBox bounds)
@@ -160,9 +163,9 @@ namespace Dynamo.Controls
             View.InvalidateRender();
         }
 
-        private void RequestCreateModelsHandler(IEnumerable<IRenderPackage> packages)
+        private void RequestCreateModelsHandler(IEnumerable<IRenderPackage> packages, bool forceAsyncCall = false)
         {
-            if (CheckAccess())
+            if (!forceAsyncCall && CheckAccess())
             {
                 ViewModel.GenerateViewGeometryFromRenderPackagesAndRequestUpdate(packages);
             }
