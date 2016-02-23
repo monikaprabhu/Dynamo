@@ -3422,5 +3422,20 @@ answer=foo({ val }[0]<1> , { val }[0]<2>)[0]; // expected : { 0.5, 0.5 }
             thisTest.RunScriptSource(code);
             thisTest.Verify("answer", new object[] { 0.5, 0.5 });
         }
+        [Test]
+        [Category("DSDefinedClass_Ported")]
+        [Category("Replication")]
+        public void RegressMAGN1536()
+        {
+            string code =
+@"
+import (""FFITarget.dll"");
+x = (ReplicationTestA.ReplicationTestA((1..3),0,0))[0].X;
+";
+            string errmsg = "Regression : Use of the array index after replicated constructor yields complier error now ";
+            thisTest.VerifyRunScriptSource(code, errmsg);
+            thisTest.Verify("x", 1);
+
+        }
     }
 }
