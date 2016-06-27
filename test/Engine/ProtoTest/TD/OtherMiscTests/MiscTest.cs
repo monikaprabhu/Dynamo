@@ -9,24 +9,26 @@ namespace ProtoTest.TD.OtherMiscTests
     {
         [Test]
         [Category("SmokeTest")]
+        [Category("BackwardIncompatible")]
         public void Fibunacci()
         {
             string code = @"
 fib10_r;
 fib10_i;
-[Imperative]
-{
     def fibonacci_recursive:int(number : int)
     {
+return = [Imperative]{
         if( number < 2)
         {
             return = 1;
         }
         return = fibonacci_recursive(number-1) + fibonacci_recursive(number -2);
+}
     }
     
     def fibonacci_iterative:int(number : int)
     {
+return = [Imperative]{
         one = 0;
         two = 1;
        counter = 1;
@@ -43,9 +45,9 @@ fib10_i;
         
         return = two;
     }
+}
     fib10_r = fibonacci_recursive(20);
     fib10_i = fibonacci_iterative(20);
-}
 ";
             ExecutionMirror mirror = thisTest.RunScriptSource(code);
             thisTest.Verify("fib10_r", 10946);
@@ -59,15 +61,15 @@ fib10_i;
             string code = @"
 sqrt_10;
 sqrt_20;
-[Imperative]
-{
     def abs : double( val : double )
     {
+return = [Imperative]{
         if( val < 0 )
         {
             return = -1 * val;
         }
         return = val;
+}
     }
     
     //    this is famous as the first ever algo to evaluate
@@ -76,6 +78,7 @@ sqrt_20;
     //    
     def sqrt_heron : double ( val : double )
     {
+return = [Imperative]{
         counter = 0;
         temp_cur = val / 2.0;
         temp_pre = temp_cur - 1.0;
@@ -93,6 +96,7 @@ sqrt_20;
         }
         
         return = temp_cur;
+}
     }
     
     def sqrt : double ( val : double )
@@ -102,8 +106,6 @@ sqrt_20;
     
     sqrt_10 = sqrt(10.0);
     sqrt_20 = sqrt(20.0);
- 
-}
 ";
             ExecutionMirror mirror = thisTest.RunScriptSource(code);
             thisTest.Verify("sqrt_10", Math.Sqrt(10.0));
@@ -650,47 +652,6 @@ a=5;";
         }
 
         [Test]
-        [Category("SmokeTest")]
-        [Category("ProtoGeometry")] [Ignore] [Category("PortToCodeBlocks")]
-        public void Comments_Nested()
-        {
-            Assert.Throws(typeof(ProtoCore.Exceptions.CompileErrorsOccured), () =>
-            {
-                string code = @"
-/*
-WCS=CoordinateSystem.Identity();
-/*
-p2 = Point.ByCoordinates(0,0,0);
-*/
-*/
-import(""ProtoGeometry.dll"");
-WCS=CoordinateSystem.Identity();
-p2 = Point.ByCoordinates(0,0,0);";
-                ExecutionMirror mirror = thisTest.RunScriptSource(code);
-            });
-        }
-
-        [Test]
-        [Category("ProtoGeometry")] [Ignore] [Category("PortToCodeBlocks")]
-        public void Comments_Negative()
-        {
-            Assert.Throws(typeof(ProtoCore.Exceptions.CompileErrorsOccured), () =>
-            {
-                string code = @"
-/*
-WCS=CoordinateSystem.Identity();
-p2 = Point.ByCoordinates(0,0,0);
-*/
-/*
-import(""ProtoGeometry.dll"");
-WCS=CoordinateSystem.Identity();
-p2 = Point.ByCoordinates(0,0,0);";
-                ExecutionMirror mirror = thisTest.RunScriptSource(code);
-            });
-            //Verification
-        }
-
-        [Test]
         public void error_LineNumber_2()
         {
             string err = "1467130 - Sprint 24 - Rev 2908 - Missing Line number information while throwing warning ";
@@ -913,25 +874,6 @@ return = t;
             //});
         }
 
-
-        [Test]
-        [Category("ProtoGeometry")] [Ignore] [Category("PortToCodeBlocks")]
-        public void TestKeyword_reserved_1467551_4()
-        {
-            String code =
-            @"
-                import(""ProtoGeometry.dll"");
-                wcs = CoordinateSystem.Identity();
-                base = Cylinder.ByRadiusHeight(wcs, 10, 5);
-            ";
-            string errmsg = "";
-            //Assert.Throws(typeof(ProtoCore.Exceptions.CompileErrorsOccured), () =>
-            //{
-            ExecutionMirror mirror = thisTest.VerifyRunScriptSource(code, errmsg);
-            thisTest.VerifyBuildWarningCount(0);
-            //});
-        }
-
         [Test]
         public void functionNotFound_1467444()
         {
@@ -943,27 +885,6 @@ return = t;
 
             ExecutionMirror mirror = thisTest.VerifyRunScriptSource(code, errmsg);
 
-            TestFrameWork.VerifyBuildWarning(ProtoCore.BuildData.WarningID.FunctionNotFound);
-        }
-
-        [Test]
-        public void functionNotFound_1467444_2()
-        {
-            String code =
-            @"
-               z=[Imperative]
-               {
-                        def AnotherFunction(test:int)
-                        {
-                            result = test * test;
-                            return = result;    
-                        }
-                        x = Function(5);
-                        return = x;
-               }
-                                ";
-            string errmsg = "";
-            ExecutionMirror mirror = thisTest.VerifyRunScriptSource(code, errmsg);
             TestFrameWork.VerifyBuildWarning(ProtoCore.BuildData.WarningID.FunctionNotFound);
         }
     }

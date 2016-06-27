@@ -60,14 +60,15 @@ a;b;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS003IntToChar1467119_Imperative()
         {
             string code =
-                @"y;[Imperative]{
+                @"y;
                 def foo ( x : char )
                 {    
                 return = x;
-                }
+                }[Imperative]{
                 y = foo (1);}";
             thisTest.RunScriptSource(code);
             thisTest.Verify("y", null);
@@ -76,15 +77,16 @@ a;b;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS004_IntToChar_1467119_2_Imperative()
         {
             string code =
                 @"y;
-                [Imperative]{
                 def foo ( x : char )
                 {    
                 return = true;
                 }
+                [Imperative]{
                 y = foo ('1');}";
             thisTest.RunScriptSource(code);
             thisTest.Verify("y", true);
@@ -93,18 +95,19 @@ a;b;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS005_RetTypeArray_return_Singleton_1467196_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
-                  [Imperative]{
-                   //return type class and return an array of class-
-                   
                         def length : ClassFunctionality[] (pts : ClassFunctionality[])
                         {
                             return = pts[0];
                         }
+                  [Imperative]{
+                   //return type class and return an array of class-
+                   
                         pt1 = ClassFunctionality.ClassFunctionality( );
                         pt2 = ClassFunctionality.ClassFunctionality(  );
                         pts = {pt1, pt2};
@@ -120,19 +123,19 @@ import(""FFITarget.dll"");
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS006_RetTypeuserdefinedArray_return_double_1467196_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
-a;
-                [Imperative]{
-                   //return type class and return a double
-                   
-                    def length : ClassFunctionality (pts : ClassFunctionality[])
+a;                    def length : ClassFunctionality (pts : ClassFunctionality[])
                     {
                         return = 1.0;
                     }
+                [Imperative]{
+                   //return type class and return a double
+                   
                     pt1 = ClassFunctionality.ClassFunctionality();
                     pt2 = ClassFunctionality.ClassFunctionality();
                     pts = {pt1, pt2};
@@ -148,6 +151,7 @@ a;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS007_Return_double_To_int_1467196_Imperative()
         {
             string code =
@@ -155,13 +159,13 @@ a;
 import(""FFITarget.dll"");
                         numpts;
                         a;
-                        [Imperative]{
-                        //return type int and return a double
-                       
                         def length : int (pts : ClassFunctionality[])
                         {
                               return = 1;
                         }
+                        [Imperative]{
+                        //return type int and return a double
+                       
                         pt1 = ClassFunctionality.ClassFunctionality( );
                         pt2 = ClassFunctionality.ClassFunctionality( );
                         pts = {pt1, pt2};
@@ -177,14 +181,14 @@ import(""FFITarget.dll"");
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS008_Param_Int_IntArray_1467208_Imperative()
         {
             string code =
-                @"r;[Imperative]{
-                      def foo:int[] (x:int[])
+                @"r;  def foo:int[] (x:int[])
                       {
                           return = 1;
-                      }
+                      }[Imperative]{
                       r = foo(3);            
                 }";
             string error = "DNL-1467208 Auto-upcasting of int -> int[] is not happening in some cases";
@@ -197,11 +201,10 @@ import(""FFITarget.dll"");
         public void TS009_Parameter_Int_ToBoolArray_1467182_Imperative()
         {
             string code =
-                @"r;[Imperative]{
-                       def foo(x:bool[])
+                @"r;   def foo(x:bool[])
                        {
                           return = 1;
-                       }
+                       }[Imperative]{
                        r = foo(3);            
                 }";
             //Assert.Fail("1467182 - Sprint 25 - [Design Decision] Rev 3163 - method resolution or type conversion is expected in following cases ");
@@ -212,14 +215,14 @@ import(""FFITarget.dll"");
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS010_Parameter_Bool_ToIntArray_1467182_Imperative()
         {
             string code =
-                @"r;[Imperative]{
-                      def foo(x:int[])
+                @"r;  def foo(x:int[])
                       {
                             return = 1;
-                       }
+                       }[Imperative]{
                        r = foo(false);    
                 }";
             thisTest.RunScriptSource(code);
@@ -228,14 +231,15 @@ import(""FFITarget.dll"");
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS011_Return_Int_ToIntArray_Imperative()
         {
             string code =
-                @"r;[Imperative]{
-                        def foo:int[](x:int)
+                @"r;                        def foo:int[](x:int)
                         {
                               return = x;
-                        }
+                        }[Imperative]{
+
                         r = foo(3); // r = {3};
                 }";
             //Assert.Fail("1467200 - Sprint 25 - rev 3242 type checking negative cases failing ");
@@ -245,14 +249,14 @@ import(""FFITarget.dll"");
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS012_Return_Int_ToBoolArray_1467182_Imperative()
         {
             string code =
-                @"r;[Imperative]{
-                    def foo:bool[]()
+                @"r;                    def foo:bool[]()
                     {
                             return = x;
-                     }
+                     }[Imperative]{
                      r = foo(3);            // r = {null} ?
                 }";
             //Assert.Fail("1467182 - Sprint 25 - [Design Decision] Rev 3163 - method resolution or type conversion is expected in following cases  ");
@@ -262,14 +266,14 @@ import(""FFITarget.dll"");
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS013_Parameter_Bool_ToIntArray_Imperative()
         {
             string code =
-                @"r;[Imperative]{
-                        def foo:int[]()
+                @"r;    def foo:int[]()
                         {
                            return = false;
-                        }
+                        }[Imperative]{
                         r = foo(); // r = {null}
                 }";
             //Assert.Fail("1467200 - Sprint 25 - rev 3242 type checking negative cases failing ");
@@ -279,14 +283,14 @@ import(""FFITarget.dll"");
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS014_Return_IntArray_ToInt_Imperative()
         {
             string code =
-                @"r;[Imperative]{
-                       def foo:int()
+                @"r;                       def foo:int()
                        {
                             return = {1, 2, 3};
-                       }              
+                       }    [Imperative]{
                        r = foo();                              
                 }";
             //Assert.Fail("1467200 - Sprint 25 - rev 3242 type checking negative cases failing ");
@@ -296,14 +300,14 @@ import(""FFITarget.dll"");
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS015_Parameter_BoolArray_ToInt_Imperative()
         {
             string code =
-                @"r;[Imperative]{
-                      def foo(x:int)
+                @"r;                      def foo(x:int)
                       {
                              return = x + 1;
-                      }
+                      }[Imperative]{
                       r = foo({true, false}); // method resolution failure, r= null
                               
                 }";
@@ -314,14 +318,16 @@ import(""FFITarget.dll"");
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS016_Return_BoolArray_ToInt_Imperative()
         {
             string code =
-                @"r;[Imperative]{
+                @"r;
                        def foo:int()
                        {
                               return = {true, false};
-                       }              
+                       }   
+                        [Imperative]{
                        r = foo();                             
                 }";
             //Assert.Fail("1467200 - Sprint 25 - rev 3242 type checking negative cases failing ");
@@ -353,19 +359,21 @@ c;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS018_Param_Int_ordouble_ToBool_1467172_Imperative()
         {
             string code =
                 @"
 b;c;d;
-                      [Imperative]
-                            {
-                            c={};
                             def foo( a : bool )
                             {
                             c={a};
                             return = c; 
                             }
+                      [Imperative]
+                            {
+                            c={};
+
                             b = foo( 1 );
                             c = foo( 1.5 );
                             d = 0;
@@ -389,14 +397,15 @@ b;c;d;
             string code =
                 @"
 b;c;d;
-                      [Imperative]
-                            {
-                        
                             def foo:bool( a  )
                             {
                             
                             return = a; 
                             }
+                      [Imperative]
+                            {
+                        
+
                             b = foo( 1 );
                             c = foo( 1.5 );
                             d = 0;
@@ -547,14 +556,15 @@ foo3;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS023_Double_To_Int_1467084_Imperative()
         {
             string code =
-                @"x;[Imperative]{
-                     def foo:int(i:int)
+                @"x;                     
+                        def foo:int(i:int)
                         {
                              return = i;
-                        }
+                        }[Imperative]{
                         x = foo(2.5);// returning 2.5 it should return 2
                         }";
             //Assert.Fail("1463268 - Sprint 20 : [Design Issue] Rev 1822 : Method resolution fails when implicit type conversion of double to int is expected ");
@@ -564,14 +574,16 @@ foo3;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS023_Double_To_Int_1467084_2_Imperative()
         {
             string code =
-                @"t;[Imperative]{
+                @"t;
                      def foo ( x : int )
                         {
                         return = x + 1;
                         }
+                        [Imperative]{
                         t = foo( 1.5);
                         }";
             //Assert.Fail("1463268 - Sprint 20 : [Design Issue] Rev 1822 : Method resolution fails when implicit type conversion of double to int is expected ");
@@ -633,14 +645,15 @@ d;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS026_Double_ToInt_1467211_Imperative()
         {
             string code =
-                @"a;[Imperative]{
-                  def foo:int()
+                @"a;                  
+                   def foo:int()
                   {
                       return = 3.5; 
-                  }
+                  }[Imperative]{
                   a=foo();
                         }";
             thisTest.RunScriptSource(code);
@@ -649,14 +662,15 @@ d;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS027_Double_ToInt_1467217_Imperative()
         {
             string code =
-                @"a;[Imperative]{
+                @"a;
                  def foo:int[]()
                     {
                          return = {3.5}; 
-                    }
+                    }[Imperative]{
                     a=foo();
                         }";
             //Assert.Fail("1467217 - Sprint 26 - Rev 3337 - Type Conversion does not happen if the function returns an array ");
@@ -666,14 +680,16 @@ d;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS028_Double_ToInt_1467218_Imperative()
         {
             string code =
-                @"a;[Imperative]{
+                @"a;
                   def foo:int()
                   {
                       return = 3.5; 
                   }
+                  [Imperative]{
                   a=foo();
                         }";
             thisTest.RunScriptSource(code);
@@ -682,14 +698,16 @@ d;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS028_Double_ToInt_1467218_1_Imperative()
         {
             string code =
-                @"a;[Imperative]{
+                @"a;
                   def foo:int[]()
                   {
                       return = {3.5}; 
                   }
+                 [Imperative]{
                   a=foo()[0];
                         }";
             //Assert.Fail("1467218 - Sprint 26 - Rev 3337 - Type Conversion does not happen if the function returns and array and and index into function call ");
@@ -723,14 +741,16 @@ b;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS029_Double_ToInt_1463268_Imperative()
         {
             string code =
-                @"t;[Imperative]{
+                @"t;
                   def foo ( x : int )
                     {
                     return = x + 1;
                     }
+[Imperative]{
                     t = foo( 1.5);
                         }";
             //Assert.Fail("1463268 - Sprint 20 : [Design Issue] Rev 1822 : Method resolution fails when implicit type conversion of double to int is expected");
@@ -741,19 +761,19 @@ b;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS030_eachtype_To_var_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
 a; b; c; d1; e; f;
-[Imperative]{
-                  
                         def foo ( x )
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+[Imperative]{
                         a = foo( 1.5); 
                         b = foo( 1); 
                         c = foo( ""1.5""); //char to var 
@@ -775,19 +795,19 @@ a; b; c; d1; e; f;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS031_eachType_To_int_Imperative()
         {
             string code =
                 @" 
 import(""FFITarget.dll"");
 a;b;c;d1;e;f;
-[Imperative]{
-                 
                         def foo ( x:int )
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+[Imperative]{
                         a = foo( 1.5); 
                         b = foo( 1); 
                         c = foo( ""1.5""); // var to int 
@@ -809,19 +829,19 @@ a;b;c;d1;e;f;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS031_eachtype_To_double_Imperative()
         {
             string code =
                 @" 
 import(""FFITarget.dll"");
 a;b;c;d1;e;f;
-[Imperative]{
-                  
                         def foo ( x:double )
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+[Imperative]{
                         a = foo( 1); 
                         b = foo( 1); 
                         c = foo( ""1.5""); // var to int 
@@ -874,19 +894,19 @@ a;b;c;c1;d;e;e1;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS033_eachType_To_string_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
 a;b;c;d1;e;f;
-                    [Imperative]{
-                    
                        def foo ( x:string)
                           {
                               b1= x ;
                               return =b1;
                           }
+                    [Imperative]{
                           a = foo(0.00); // double to string
                           b = foo( 1); // int to  string
                           c = foo( ""1.5"");//char to string  
@@ -909,19 +929,19 @@ a;b;c;d1;e;f;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS034_eachType_To_char_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
 a;b;c;d1;c1;e;f;
-                    [Imperative]{
-                     
                        def foo ( x:char)
                           {
                               b1= x ;
                               return =b1;
                           }
+                    [Imperative]{
                           a = foo(0.00); // double to char
                           b = foo( 1); // int to  char
                           c = foo( ""1.5"");//char to char
@@ -943,6 +963,7 @@ a;b;c;d1;c1;e;f;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS34_CharToString_1467227_Imperative()
         {
             string code =
@@ -1086,15 +1107,16 @@ a1;b1;b2;c;c1;c2;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS41_null_toBool_1467231_2_Imperative()
         {
             string code =
-                @"a;c;[Imperative]{
-                a=null; 
-                def test(b:bool)
-                {
+                @"a;c;
+                def test(b:bool) {
                 return = b;
                 }
+                [Imperative]{
+                a=null; 
                 c=test(a);}"; //expected :true, received : null
             thisTest.RunScriptSource(code);
             thisTest.Verify("a", null);
@@ -1103,15 +1125,16 @@ a1;b1;b2;c;c1;c2;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS42_null_toBool_1467231_3_Imperative()
         {
             string code =
-                @"c;[Imperative]{
-                a=null; 
+                @"c;
                 def test:bool(b)
                 {
                 return = b;
-                }
+                }[Imperative]{
+                a=null; 
                 c=test(a);}";
             thisTest.RunScriptSource(code);
             thisTest.Verify("c", null);
@@ -1170,15 +1193,16 @@ a;b;c;d;e;f;g;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS45_int_To_Double_1463268_Imperative()
         {
             string code =
-                @"t;[Imperative]{
-               def foo(x:int) 
-               { 
-	               return = x + 1; 
-               }
-               t = foo(1.5);}";
+                @"t;
+def foo(x:int) 
+{
+    return = x + 1; 
+}
+[Imperative]{t = foo(1.5);}";
             thisTest.RunScriptSource(code);
             thisTest.Verify("t", 3);
         }
@@ -1327,17 +1351,18 @@ a;b;c;d;e1;f;g;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS047_double_To_Int_insidefunction_Imperative()
         {
             string code =
                 @"t;
-                [Imperative]{
-              def foo(x:int) 
+                def foo(x:int) 
                 {
 	                x = 3.5; 
                 
 	                return = x; 
                 }
+                [Imperative]{
                 a=1.5;
                 t = foo(a);}";
             //thisTest.SetErrorMessage("1467250 Sprint 26 - 3472 - variable modification inside a function does not follow type conversion rules ");
@@ -1348,16 +1373,18 @@ a;b;c;d;e1;f;g;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS047_double_To_Int_insidefunction_2_Imperative()
         {
             string code =
-                @"t;[Imperative]{
-              def foo(x:int )
+                @"t;
+                def foo(x:int )
                 {
                     x:double = 3.5;
                     y = 3;
                     return = x * y;
                 }
+                [Imperative]{
                 a = 1.5;
                 t = foo(a);}";
             //thisTest.SetErrorMessage("1467250 Sprint 26 - 3472 - variable modification inside a function does not follow type conversion rules ");
@@ -1376,13 +1403,12 @@ a;b;c;d;e1;f;g;
                 @"
 import(""FFITarget.dll"");
 a;b;c;d1;e;f;
-                    [Imperative]{
-                  
                         def foo ( x:var[] )
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                    [Imperative]{
                         a = foo( 1.5); 
                         b = foo( 1); 
                         c = foo( ""1.5""); //char to var 
@@ -1413,13 +1439,12 @@ a;b;c;d1;e;f;
                 @"
 import(""FFITarget.dll"");
 a;b;c;d1;e;f;
-                        [Imperative]{
-                   
                         def foo :var[]( x)
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                        [Imperative]{
                         a = foo( 1.5); 
                         b = foo( 1); 
                         d = foo( ClassFunctionality.ClassFunctionality(1)); // user define to var
@@ -1448,13 +1473,12 @@ a;b;c;d1;e;f;
                 @"
 import(""FFITarget.dll"");
 a;a1;b;c;d1;e;f;
-                    [Imperative]{
-                 
                         def foo :int[]( x)
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                    [Imperative]{
                         a = foo( 1.5); 
                         z:var=1.5;
                         a1=foo(z);
@@ -1481,19 +1505,19 @@ a;a1;b;c;d1;e;f;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS051_Param_eachType_To_intArray_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
 a;a1;b;c;d1;e;f;
-                    [Imperative]{
-                 
                         def foo ( x:int[])
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                    [Imperative]{
                         a = foo( 1.5); 
                          z:var=1.5;
                         a1=foo(z);
@@ -1519,6 +1543,7 @@ a;a1;b;c;d1;e;f;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS052_Return_AllTypeTo_doubleArray_Imperative()
         {
             //  
@@ -1526,13 +1551,12 @@ a;a1;b;c;d1;e;f;
                 @"
 import(""FFITarget.dll"");
 a;a1;b;c;d1;e;f;
-                [Imperative]{
-                  
                         def foo :double[]( x)
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                [Imperative]{
                         a = foo( 1.5); 
                          z:var=1.5;
                         a1=foo(z);
@@ -1558,6 +1582,7 @@ a;a1;b;c;d1;e;f;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS053_Param_AlltypeTo_doubleArray_Imperative()
         {
             //  
@@ -1565,13 +1590,12 @@ a;a1;b;c;d1;e;f;
                 @"
 import(""FFITarget.dll"");
 a;b;c;d1;e;f;
-                [Imperative]{
-                  
                         def foo ( x:double[])
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                [Imperative]{
                         a = foo( 1.5); 
                          z:var=1.5;
                         a1=foo(z);
@@ -1597,19 +1621,19 @@ a;b;c;d1;e;f;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS055_Param_AlltypeTo_BoolArray_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
 a;a1;b;c;d;e;e1;
-                [Imperative]{
-                    
                         def foo ( x:bool[])
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                [Imperative]{
                         a = foo({ 1.5, 2.5 });
                         z:var[]={ 1.5,2.5 };
                         a1=foo(z);
@@ -1634,19 +1658,19 @@ a;a1;b;c;d;e;e1;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS056_Return_AlltypeTo_BoolArray_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
 a;a1;b;c;d;e;f;g;
-                [Imperative]{
-                   
                         def foo :bool( x)
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                [Imperative]{
                         a = foo({ 1.5, 2.5 });
                         z:var[]={ 1.5,2.5 };
                         a1=foo(z);
@@ -1672,19 +1696,19 @@ a;a1;b;c;d;e;f;g;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS056_Return_BoolArray_1467258_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
 a;a1;b;c;d;e;
-                [Imperative]{
-                   
-                    def foo:bool[](x)
+                def foo:bool[](x)
                             {
 		 	                    b1= x ;
 	                             return =b1;
                             }
+                [Imperative]{
                     a = foo({ 1.5, 2.5 });
                     a1 : var = foo({ 1.5,2.5 });
                     b = foo({ 1, 0 });
@@ -1776,14 +1800,15 @@ import(""FFITarget.dll"");
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS063_basic_upcoerce_dispatch_Imperative()
         {
             string code =
                 @"a;
-                [Associative]
-                { 
                     def foo(i : int[])
                     { return=i; }
+                [Associative]
+                { 
                     a = foo(3);
                 }
                                                 ";
@@ -1793,14 +1818,15 @@ import(""FFITarget.dll"");
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS063_basic_upcoerce_return_Imperative()
         {
             string code =
                 @"a;
-                [Associative]
-                { 
                     def foo:int[]()
                     { return=3; }
+                [Associative]
+                { 
                     a = foo();
                 }
                                                ";
@@ -1864,11 +1890,12 @@ import(""FFITarget.dll"");
         public void TS066_Int_To_Char_1467119_Imperative()
         {
             string code =
-                @"y;[Imperative]{
+                @"y;
                     def foo ( x : char )
                     {
                         return = x;
                     }
+                    [Imperative]{
                     y = foo (1);
                     }";
             string error = "1467119 - Sprint24 : rev 2807 : Type conversion issue with char  ";
@@ -1878,14 +1905,16 @@ import(""FFITarget.dll"");
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS067_string_To_Char_1467119_2_Imperative()
         {
             string code =
-                @"y;[Imperative]{
+                @"y;
                     def foo ( x : char )
                     {
                         return = x;
                     }
+                    [Imperative]{
                     y = foo (""1"");
                     }";
             string error = "1467119 - Sprint24 : rev 2807 : Type conversion issue with char  ";
@@ -1896,19 +1925,19 @@ import(""FFITarget.dll"");
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS068_Param_singleton_AlltypeTo_BoolArray_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
 a;a1;b;c;d;e;e1;
-                [Imperative]{
-                    
-                        def foo ( x:bool[])
+def foo ( x:bool[])
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                [Imperative]{
                         a = foo( 1.5);
                         z:var=1.5;
                         a1=foo(z);
@@ -1933,19 +1962,19 @@ a;a1;b;c;d;e;e1;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS069_Return_singleton_AlltypeTo_BoolArray_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
 a;a1;b;c;c1;d;e;e1;
-                [Imperative]{
-                    
-                        def foo:bool[]( x)
+def foo:bool[]( x)
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                [Imperative]{
                         a = foo( 1.5);
                         z:var=1.5;
                         a1=foo(z);
@@ -1970,19 +1999,19 @@ a;a1;b;c;c1;d;e;e1;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS070_Param_singleton_AlltypeTo_StringArray_Imperative()
         {
             string code =
                 @" 
 import(""FFITarget.dll"");
 a;a1;b;c;c1;d;e;e1;
-                    [Imperative]{
-                   
-                        def foo ( x:string[])
+def foo ( x:string[])
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                    [Imperative]{
                         a = foo(1.5);
                         z:var=1.5;
                         a1=foo(z);
@@ -2007,19 +2036,19 @@ a;a1;b;c;c1;d;e;e1;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS071_return_singleton_AlltypeTo_StringArray_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
 a;a1;b;c;c1;d;e;f;
-                [Imperative]{
-                    
-                        def foo :string[]( x)
+def foo :string[]( x)
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                [Imperative]{
                         a = foo(1.5);
                         z:var=1.5;
                         a1=foo(z);
@@ -2044,19 +2073,19 @@ a;a1;b;c;c1;d;e;f;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS072_Param_singleton_AlltypeTo_CharArray_Imperative()
         {
             string code =
                 @" 
 import(""FFITarget.dll"");
 a;a1;b;c;c1;d;e;f;
-                   [Imperative]{
-                   
-                        def foo ( x:char[])
+def foo ( x:char[])
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                   [Imperative]{
                         a = foo(1.5);
                         z:var=1.5;
                         a1=foo(z);
@@ -2081,19 +2110,19 @@ a;a1;b;c;c1;d;e;f;
         [Test]
         [Category("DSDefinedClass_Ported")]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS073_return_singleton_AlltypeTo_CharArray_Imperative()
         {
             string code =
                 @"
 import(""FFITarget.dll"");
 a;a1;b;c;c1;d;e;f;
-                    [Imperative]{
-                    
                         def foo :char[]( x)
                         {
 	                        b1= x ;
 	                        return =b1;
                         }
+                    [Imperative]{
                         a = foo(1.5);
                         z:var=1.5;
                         a1=foo(z);
@@ -2312,6 +2341,7 @@ a1;
         }
 
         [Test]
+        [Category("BackwardIncompatible")]
         public void indexintoarray_left_1467462_4_imperative()
         {
             string code =
@@ -2323,7 +2353,7 @@ a1;
                 }
                 ";
             var mirror = thisTest.RunScriptSource(code);
-            TestFrameWork.Verify(mirror, "x", new object[] { true, false, true, true });
+            TestFrameWork.Verify(mirror, "x", new object[] { true, false, true, 2 });
         }
 
         [Test]
@@ -2490,6 +2520,7 @@ myRangeExpressionResult ;
 
         [Test]
         [Category("Type System")]
+        [Category("BackwardIncompatible")]
         public void TS0193_TypeConversion_nested_block_1467568()
         {
             string code =
@@ -2514,7 +2545,7 @@ myRangeExpressionResult ;
             string error = " ";
             var mirror = thisTest.RunScriptSource(code, error);
             thisTest.VerifyRuntimeWarningCount(0);
-            thisTest.Verify("myRangeExpressionResult", new object[] { 0, 1, 2 });
+            thisTest.Verify("myRangeExpressionResult", new object[] { 0, 0.5, 1.0 });
         }
 
         [Test]
